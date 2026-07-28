@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { signOut } from '@/lib/actions/auth'
@@ -19,6 +19,7 @@ import { FileCode, GitFork, LogOut, UserRound, Menu, X } from 'lucide-react'
 
 export default function Header() {
   const router = useRouter()
+  const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -37,6 +38,8 @@ export default function Header() {
           .then(({ data }) => {
             if (data?.avatar_url) setAvatarUrl(data.avatar_url)
           })
+      } else {
+        setAvatarUrl(null)
       }
     })
 
@@ -47,7 +50,7 @@ export default function Header() {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [pathname])
 
   const handleSignOut = async () => {
     await signOut()

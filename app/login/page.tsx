@@ -14,7 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { signIn, signInWithGithub } from '@/lib/actions/auth'
+import { signInWithGithub } from '@/lib/actions/auth'
+import { createClient } from '@/lib/supabase/client'
 import {  GitFork, Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
@@ -30,11 +31,21 @@ export default function LoginPage() {
     setError(null)
 
     const formData = new FormData(e.currentTarget)
-    const result = await signIn(formData)
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
 
-    if (result?.error) {
-      setError(result.error)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      setError(error.message)
       setLoading(false)
+    } else {
+      router.push('/')
+      router.refresh()
     }
   }
 

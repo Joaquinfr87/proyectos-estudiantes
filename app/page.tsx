@@ -1,4 +1,8 @@
+'use client'
+
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useState, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { LinkButton } from '@/components/link-button'
 import { Badge } from '@/components/ui/badge'
@@ -12,46 +16,193 @@ import {
   Sparkles,
   Search,
 } from 'lucide-react'
-import {
-  getRandomProject,
-  getFilteredProjects,
-  getAllTechStacks,
-  getAllAuthors,
-} from '@/lib/actions/projects'
+import { createClient } from '@/lib/supabase/client'
 import ProjectCard from '@/components/project-card'
 import ProjectFilters from '@/components/project-filters'
 import ProjectPagination from '@/components/project-pagination'
 import type { Project } from '@/lib/types'
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; tech?: string; author?: string; page?: string }>
-}) {
-  const params = await searchParams
+const ITEMS_PER_PAGE = 12
 
-  const [randomProject, paginatedResult, allTechStacks, allAuthors] =
-    await Promise.all([
-      getRandomProject(),
-      getFilteredProjects({
-        q: params.q,
-        tech: params.tech,
-        author: params.author,
-        page: Number(params.page) || 1,
-      }),
-      getAllTechStacks(),
-      getAllAuthors(),
-    ])
+interface HomeState {
+  randomProject: Project | null
+  projects: Project[]
+  total: number
+  totalPages: number
+  currentPage: number
+  allTechStacks: string[]
+  allAuthors: { id: string; full_name: string | null }[]
+  loading: boolean
+}
 
-  const { projects, total, totalPages, currentPage } = paginatedResult
+function HomeContent() {
+  const searchParams = useSearchParams()
 
-  const hasActiveFilters = !!(params.q || params.tech || params.author)
+  const q = searchParams.get('q') || ''
+  const tech = searchParams.get('tech') || ''
+  const author = searchParams.get('author') || ''
+  const page = Number(searchParams.get('page')) || 1
+
+  const [state, setState] = useState<HomeState>({
+    randomProject: null,
+    projects: [],
+    total: 0,
+    totalPages: 0,
+    currentPage: page,
+    allTechStacks: [],
+    allAuthors: [],
+    loading: true,
+  })
+
+  useEffect(() => {
+    let cancelled = false
+    const supabase = createClient()
+
+    async function fetchData() {
+      try {
+        const [randomResult, techResult, authorsResult] = await Promise.all([
+          supabase.from('projects').select('id').limit(100),
+          supabase.from('projects').select('tech_stack'),
+          supabase.from('projects').select('user_id'),
+        ])
+
+        let randomProject: Project | null = null
+        if (randomResult.data && randomResult.data.length > 0) {
+          const randomIndex = Math.floor(
+            Math.random() * randomResult.data.length
+          )
+          const randomId = randomResult.data[randomIndex].id
+          const { data: randomProj } = await supabase
+            .from('projects')
+            .select(
+              `
+              *,
+              profiles:user_id (
+                full_name,
+                avatar_url,
+                github_username
+              )
+            `
+            )
+            .eq('id', randomId)
+            .single()
+          randomProject = randomProj as Project
+        }
+
+        let allTechStacks: string[] = []
+        if (techResult.data) {
+          const allTechs = new Set<string>()
+          techResult.data.forEach((project) =>
+            project.tech_stack?.forEach((t: string) => allTechs.add(t))
+          )
+          allTechStacks = Array.from(allTechs).sort()
+        }
+
+        let allAuthors: { id: string; full_name: string | null }[] = []
+        if (authorsResult.data) {
+          const userIds = [
+            ...new Set(authorsResult.data.map((p) => p.user_id)),
+          ]
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', userIds)
+            .order('full_name', { ascending: true })
+          allAuthors =
+            profiles?.map((p) => ({ id: p.id, full_name: p.full_name })) || []
+        }
+
+        let projects: Project[] = []
+        let total = 0
+        let totalPages = 0
+
+        const from = (page - 1) * ITEMS_PER_PAGE
+        const to = from + ITEMS_PER_PAGE - 1
+
+        let query = supabase
+          .from('projects')
+          .select(
+            `
+            *,
+            profiles:user_id (
+              full_name,
+              avatar_url,
+              github_username
+            )
+          `,
+            { count: 'exact' }
+          )
+
+        if (q) {
+          query = query.or(
+            `title.ilike.%${q}%,description.ilike.%${q}%`
+          )
+        }
+
+        if (tech) {
+          query = query.contains('tech_stack', [tech])
+        }
+
+        if (author) {
+          const { data: authorProfiles } = await supabase
+            .from('profiles')
+            .select('id')
+            .ilike('full_name', `%${author}%`)
+
+          if (authorProfiles && authorProfiles.length > 0) {
+            const authorIds = authorProfiles.map((p) => p.id)
+            query = query.in('user_id', authorIds)
+          }
+        }
+
+        const { data: filteredProjects, count, error } = await query
+          .order('created_at', { ascending: false })
+          .range(from, to)
+
+        if (!error) {
+          projects = (filteredProjects as Project[]) || []
+          total = count || 0
+          totalPages = Math.ceil(total / ITEMS_PER_PAGE)
+        }
+
+        if (!cancelled) {
+          setState({
+            randomProject,
+            projects,
+            total,
+            totalPages,
+            currentPage: page,
+            allTechStacks,
+            allAuthors,
+            loading: false,
+          })
+        }
+      } catch (err) {
+        console.error('Error fetching home data:', err)
+        if (!cancelled) {
+          setState((prev) => ({ ...prev, loading: false }))
+        }
+      }
+    }
+
+    fetchData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [page, q, tech, author])
+
+  const hasActiveFilters = !!(q || tech || author)
+
+  if (state.loading) {
+    return <HomeSkeleton />
+  }
 
   return (
     <div className='flex flex-col'>
       {/* ===== FEATURED PROJECT HERO ===== */}
-      {randomProject ? (
-        <FeaturedHero project={randomProject} />
+      {state.randomProject ? (
+        <FeaturedHero project={state.randomProject} />
       ) : (
         <EmptyHero />
       )}
@@ -62,15 +213,21 @@ export default async function Home({
         <div className='mb-8 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between'>
           <div>
             <h2 className='text-2xl font-bold tracking-tight'>
-              {hasActiveFilters ? 'Resultados de búsqueda' : 'Todos los proyectos'}
+              {hasActiveFilters
+                ? 'Resultados de búsqueda'
+                : 'Todos los proyectos'}
             </h2>
             <p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>
               {hasActiveFilters
-                ? `${total} proyecto${total !== 1 ? 's' : ''} encontrado${total !== 1 ? 's' : ''}`
-                : `Explora ${total} proyecto${total !== 1 ? 's' : ''} de la comunidad`}
+                ? `${state.total} proyecto${state.total !== 1 ? 's' : ''} encontrado${state.total !== 1 ? 's' : ''}`
+                : `Explora ${state.total} proyecto${state.total !== 1 ? 's' : ''} de la comunidad`}
             </p>
           </div>
-          <Button size='sm' className='shrink-0' render={<Link href='/projects/new' />}>
+          <Button
+            size='sm'
+            className='shrink-0'
+            render={<Link href='/projects/new' />}
+          >
             <Code2 className='mr-1.5 h-4 w-4' />
             Publicar proyecto
           </Button>
@@ -79,15 +236,15 @@ export default async function Home({
         {/* Filters */}
         <div className='mb-8'>
           <ProjectFilters
-            allTechStacks={allTechStacks}
-            allAuthors={allAuthors}
+            allTechStacks={state.allTechStacks}
+            allAuthors={state.allAuthors}
           />
         </div>
 
         {/* Project Grid */}
-        {projects.length > 0 ? (
+        {state.projects.length > 0 ? (
           <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
-            {projects.map((project) => (
+            {state.projects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>
@@ -103,7 +260,11 @@ export default async function Home({
                 : 'Sé el primero en compartir tu proyecto.'}
             </p>
             {hasActiveFilters ? (
-              <Button variant='outline' className='mt-6' render={<Link href='/' />}>
+              <Button
+                variant='outline'
+                className='mt-6'
+                render={<Link href='/' />}
+              >
                 Limpiar filtros
               </Button>
             ) : (
@@ -117,9 +278,9 @@ export default async function Home({
         {/* Pagination */}
         <div className='mt-10'>
           <ProjectPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            total={total}
+            currentPage={state.currentPage}
+            totalPages={state.totalPages}
+            total={state.total}
           />
         </div>
       </section>
@@ -136,11 +297,20 @@ export default async function Home({
               desarrolladores y muestra tu trabajo.
             </p>
             <div className='mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row'>
-              <Button size='lg' className='h-11 px-6 text-sm' render={<Link href='/register' />}>
+              <Button
+                size='lg'
+                className='h-11 px-6 text-sm'
+                render={<Link href='/register' />}
+              >
                 Crear cuenta gratis
                 <ArrowRight className='ml-2 h-4 w-4' />
               </Button>
-              <Button size='lg' variant='outline' className='h-11 px-6 text-sm' render={<Link href='/projects' />}>
+              <Button
+                size='lg'
+                variant='outline'
+                className='h-11 px-6 text-sm'
+                render={<Link href='/projects' />}
+              >
                 Ver proyectos
               </Button>
             </div>
@@ -159,8 +329,75 @@ export default async function Home({
   )
 }
 
+export default function Home() {
+  return (
+    <Suspense fallback={<HomeSkeleton />}>
+      <HomeContent />
+    </Suspense>
+  )
+}
+
+/* ===== LOADING SKELETON ===== */
+function HomeSkeleton() {
+  return (
+    <div className='flex flex-col'>
+      {/* Hero skeleton */}
+      <section className='border-b border-zinc-200 dark:border-zinc-800'>
+        <div className='mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16'>
+          <div className='mb-6 h-6 w-40 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800' />
+          <div className='grid gap-8 lg:grid-cols-5'>
+            <div className='lg:col-span-3 space-y-4'>
+              <div className='h-10 w-3/4 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800' />
+              <div className='h-5 w-full animate-pulse rounded bg-zinc-200 dark:bg-zinc-800' />
+              <div className='h-5 w-2/3 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800' />
+              <div className='flex gap-2 mt-4'>
+                <div className='h-8 w-20 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800' />
+                <div className='h-8 w-16 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800' />
+                <div className='h-8 w-24 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800' />
+              </div>
+            </div>
+            <div className='lg:col-span-2'>
+              <div className='aspect-[4/3] w-full animate-pulse rounded-2xl bg-zinc-200 dark:bg-zinc-800' />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Projects grid skeleton */}
+      <section className='mx-auto w-full max-w-6xl px-4 py-12 sm:px-6'>
+        <div className='mb-8 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between'>
+          <div className='space-y-2'>
+            <div className='h-7 w-48 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800' />
+            <div className='h-4 w-64 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800' />
+          </div>
+        </div>
+        <div className='mb-8 h-11 w-full animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800' />
+        <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className='overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800'
+            >
+              <div className='aspect-video w-full animate-pulse bg-zinc-200 dark:bg-zinc-800' />
+              <div className='space-y-3 p-4'>
+                <div className='h-5 w-3/4 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800' />
+                <div className='h-4 w-full animate-pulse rounded bg-zinc-200 dark:bg-zinc-800' />
+                <div className='h-4 w-1/2 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800' />
+                <div className='flex gap-2'>
+                  <div className='h-6 w-16 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800' />
+                  <div className='h-6 w-12 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800' />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
+
 /* ===== FEATURED PROJECT HERO ===== */
-async function FeaturedHero({ project }: { project: Project }) {
+function FeaturedHero({ project }: { project: Project }) {
   const date = new Date(project.created_at).toLocaleDateString('es-ES', {
     year: 'numeric',
     month: 'long',
@@ -255,12 +492,22 @@ async function FeaturedHero({ project }: { project: Project }) {
                 Ver proyecto completo
                 <ArrowRight className='ml-1.5 h-3.5 w-3.5' />
               </LinkButton>
-              <LinkButton size='sm' variant='outline' href={project.github_url} external>
+              <LinkButton
+                size='sm'
+                variant='outline'
+                href={project.github_url}
+                external
+              >
                 <GitFork className='mr-1.5 h-3.5 w-3.5' />
                 GitHub
               </LinkButton>
               {project.live_url && (
-                <LinkButton size='sm' variant='outline' href={project.live_url} external>
+                <LinkButton
+                  size='sm'
+                  variant='outline'
+                  href={project.live_url}
+                  external
+                >
                   <ExternalLink className='mr-1.5 h-3.5 w-3.5' />
                   Demo
                 </LinkButton>
@@ -293,7 +540,7 @@ async function FeaturedHero({ project }: { project: Project }) {
 }
 
 /* ===== EMPTY HERO (no projects yet) ===== */
-async function EmptyHero() {
+function EmptyHero() {
   return (
     <section className='relative overflow-hidden border-b border-zinc-200 dark:border-zinc-800'>
       <div className='absolute inset-0 bg-gradient-to-br from-violet-50 via-white to-indigo-50 dark:from-violet-950/20 dark:via-black dark:to-indigo-950/20' />
@@ -317,7 +564,11 @@ async function EmptyHero() {
             descubran proyectos web. ¡Sé el primero en compartir el tuyo!
           </p>
           <div className='mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row'>
-            <Button size='lg' className='h-12 px-8 text-base' render={<Link href='/register' />}>
+            <Button
+              size='lg'
+              className='h-12 px-8 text-base'
+              render={<Link href='/register' />}
+            >
               Comenzar ahora
               <ArrowRight className='ml-2 h-4 w-4' />
             </Button>
@@ -335,5 +586,3 @@ async function EmptyHero() {
     </section>
   )
 }
-
-
