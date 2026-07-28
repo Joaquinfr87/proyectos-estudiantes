@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="50%" stop-color="#0f0f0f"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="text-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)" rx="0"/>
+
+  <!-- Grid pattern -->
+  <g opacity="0.03" stroke="white" stroke-width="1">
+    <line x1="0" y1="0" x2="1200" y2="0"/>
+    <line x1="0" y1="30" x2="1200" y2="30"/>
+    <line x1="0" y1="60" x2="1200" y2="60"/>
+    <line x1="0" y1="90" x2="1200" y2="90"/>
+    <line x1="0" y1="120" x2="1200" y2="120"/>
+    <line x1="0" y1="150" x2="1200" y2="150"/>
+    <line x1="0" y1="180" x2="1200" y2="180"/>
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="240" x2="1200" y2="240"/>
+    <line x1="0" y1="270" x2="1200" y2="270"/>
+    <line x1="0" y1="300" x2="1200" y2="300"/>
+    <line x1="0" y1="330" x2="1200" y2="330"/>
+    <line x1="0" y1="360" x2="1200" y2="360"/>
+    <line x1="0" y1="390" x2="1200" y2="390"/>
+    <line x1="0" y1="420" x2="1200" y2="420"/>
+    <line x1="0" y1="450" x2="1200" y2="450"/>
+    <line x1="0" y1="480" x2="1200" y2="480"/>
+    <line x1="0" y1="510" x2="1200" y2="510"/>
+    <line x1="0" y1="540" x2="1200" y2="540"/>
+    <line x1="0" y1="570" x2="1200" y2="570"/>
+    <line x1="0" y1="600" x2="1200" y2="600"/>
+    <line x1="0" y1="630" x2="1200" y2="630"/>
+  </g>
+
+  <!-- Decorative circles -->
+  <circle cx="1050" cy="100" r="200" fill="url(#accent)" opacity="0.08"/>
+  <circle cx="150" cy="500" r="150" fill="url(#accent)" opacity="0.06"/>
+
+  <!-- Code bracket icon -->
+  <g transform="translate(130, 250)">
+    <rect x="0" y="0" width="80" height="80" rx="16" fill="url(#accent)"/>
+    <path d="m25 30-12 12 12 12m30-24 12 12-12 12m-15-26-10 32" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <!-- Title -->
+  <text x="230" y="285" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="800" fill="white">
+    Proyectos<tspan fill="url(#text-grad)">UPDS</tspan>
+  </text>
+
+  <!-- Subtitle -->
+  <text x="230" y="340" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#a1a1aa" font-weight="400">
+    Comparte tus proyectos web con la comunidad
+  </text>
+
+  <!-- Tags row -->
+  <g transform="translate(230, 390)">
+    <rect x="0" y="0" width="110" height="36" rx="18" fill="#27272a"/>
+    <text x="55" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#d4d4d8" text-anchor="middle">React</text>
+    <rect x="122" y="0" width="110" height="36" rx="18" fill="#27272a"/>
+    <text x="177" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#d4d4d8" text-anchor="middle">Next.js</text>
+    <rect x="244" y="0" width="130" height="36" rx="18" fill="#27272a"/>
+    <text x="309" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#d4d4d8" text-anchor="middle">TypeScript</text>
+    <rect x="386" y="0" width="120" height="36" rx="18" fill="#27272a"/>
+    <text x="446" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#d4d4d8" text-anchor="middle">Tailwind</text>
+  </g>
+
+  <!-- Bottom info -->
+  <text x="600" y="550" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#52525b" text-anchor="middle">
+    Comunidad de desarrolladores · UPDS · Programación IV
+  </text>
+</svg>

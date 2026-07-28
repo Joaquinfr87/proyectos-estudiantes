@@ -14,10 +14,43 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://proyectosupds.vercel.app'
+
 export const metadata: Metadata = {
-  title: 'ProyectosUPDS - Comparte tus proyectos web',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'ProyectosUPDS - Comparte tus proyectos web',
+    template: '%s | ProyectosUPDS',
+  },
   description:
-    'Plataforma para que estudiantes compartan sus proyectos web de GitHub con la comunidad UPDS.',
+    'Plataforma para que estudiantes de la UPDS compartan sus proyectos web de GitHub con la comunidad.',
+  icons: {
+    icon: '/favicon.svg',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'es_BO',
+    siteName: 'ProyectosUPDS',
+    url: '/',
+    title: 'ProyectosUPDS - Comparte tus proyectos web',
+    description:
+      'Plataforma para que estudiantes de la UPDS compartan sus proyectos web de GitHub con la comunidad.',
+    images: [
+      {
+        url: '/og-image.svg',
+        width: 1200,
+        height: 630,
+        alt: 'ProyectosUPDS',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ProyectosUPDS - Comparte tus proyectos web',
+    description:
+      'Plataforma para que estudiantes de la UPDS compartan sus proyectos web de GitHub con la comunidad.',
+    images: ['/og-image.svg'],
+  },
 }
 
 export default function RootLayout({
