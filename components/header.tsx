@@ -67,9 +67,14 @@ export default function Header() {
           <div className='flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 shadow-sm'>
             <FileCode className='h-5 w-5 text-white' />
           </div>
-          <span className='text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50'>
-            Proyectos<span className='text-violet-600'>UPDS</span>
-          </span>
+          <div className='flex flex-col'>
+            <span className='text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50 leading-tight'>
+              Proyectos<span className='text-violet-600'>UPDS</span>
+            </span>
+            <span className='text-[10px] font-medium text-zinc-500 dark:text-zinc-500 leading-tight'>
+              Programación IV
+            </span>
+          </div>
         </Link>
 
         {/* Desktop nav */}

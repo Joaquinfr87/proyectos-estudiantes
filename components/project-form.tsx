@@ -42,9 +42,16 @@ export default function ProjectForm({ project }: ProjectFormProps) {
     setTechStack(techStack.filter((t) => t !== tech))
   }
 
+  const MAX_IMAGES = 5
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    if (imageUrls.length >= MAX_IMAGES) {
+      setError(`Máximo ${MAX_IMAGES} imágenes permitidas`)
+      return
+    }
 
     if (!file.type.startsWith('image/')) {
       setError('Solo se permiten imágenes')
@@ -157,7 +164,7 @@ export default function ProjectForm({ project }: ProjectFormProps) {
             type='button'
             variant='outline'
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploadingImage}
+            disabled={uploadingImage || imageUrls.length >= MAX_IMAGES}
             className='h-10'
           >
             {uploadingImage ? (
@@ -182,7 +189,11 @@ export default function ProjectForm({ project }: ProjectFormProps) {
         </div>
 
         {imageUrls.length > 0 && (
-          <div className='mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4'>
+          <>
+            <p className='text-xs font-medium text-zinc-500 dark:text-zinc-400'>
+              {imageUrls.length} / {MAX_IMAGES} imágenes
+            </p>
+            <div className='mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4'>
             {imageUrls.map((url, index) => (
               <div key={url} className='group relative aspect-video overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800'>
                 <img
@@ -199,10 +210,11 @@ export default function ProjectForm({ project }: ProjectFormProps) {
                 </button>
               </div>
             ))}
-          </div>
+            </div>
+          </>
         )}
         <p className='text-xs text-zinc-400'>
-          Mínimo 1 imagen recomendada. Formatos: JPG, PNG, WebP. Máximo 5MB.
+          Máximo {MAX_IMAGES} imágenes. Formatos: JPG, PNG, WebP. Máximo 5MB cada una.
         </p>
       </div>
 

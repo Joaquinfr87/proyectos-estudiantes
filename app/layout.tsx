@@ -33,6 +33,18 @@ export default function RootLayout({
       <body className='min-h-full bg-zinc-50 font-sans text-zinc-900 dark:bg-black dark:text-zinc-50'>
         <Header />
         <main className='flex-1'>{children}</main>
+        <footer className='border-t border-zinc-200 bg-white py-6 dark:border-zinc-800 dark:bg-black'>
+          <div className='mx-auto max-w-6xl px-4 text-center text-sm text-zinc-500 dark:text-zinc-500 sm:px-6'>
+            Creada por{' '}
+            <span className='font-medium text-zinc-700 dark:text-zinc-300'>
+              Joaquin Felipez Rojas
+            </span>{' '}
+            para la materia de{' '}
+            <span className='font-medium text-violet-600'>
+              Programación IV
+            </span>
+          </div>
+        </footer>
         <Toaster />
       </body>
     </html>
