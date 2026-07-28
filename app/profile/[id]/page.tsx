@@ -3,10 +3,8 @@ import Link from 'next/link'
 import { getProfile } from '@/lib/actions/profile'
 import { getProjectsByUser } from '@/lib/actions/projects'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import ProjectCard from '@/components/project-card'
-import { ArrowLeft, GitFork, Calendar, Globe, Code2, ExternalLink } from 'lucide-react'
+import { ArrowLeft, GitFork, Calendar, Code2, ExternalLink } from 'lucide-react'
 
 export default async function PublicProfilePage({
   params,
