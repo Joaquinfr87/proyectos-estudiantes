@@ -246,7 +246,7 @@ function FeaturedHero({ project }: { project: Project }) {
 
         <div className='grid gap-8 lg:grid-cols-5 lg:items-center'>
           {/* Project info */}
-          <div className='lg:col-span-3'>
+          <div className='lg:col-span-2'>
             <Link
               href={`/projects/${project.id}`}
               className='group inline-block'
@@ -336,7 +336,7 @@ function FeaturedHero({ project }: { project: Project }) {
           </div>
 
           {/* Project image with auto-carousel */}
-          <div className='lg:col-span-2'>
+          <div className='lg:col-span-3'>
             <Link href={`/projects/${project.id}`}>
               {project.image_urls && project.image_urls.length > 0 ? (
                 <ImageCarousel
