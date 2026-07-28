@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { X, Plus, Loader2, GitFork, Globe, Image, Upload, ChevronsUpDown, Check, Search } from 'lucide-react'
+import { X, Plus, Loader2, GitFork, Globe, Image, Upload, ChevronsUpDown, Search } from 'lucide-react'
 import { createProject, updateProject } from '@/lib/actions/projects'
 import { uploadProjectImage } from '@/lib/supabase/storage'
 import { createClient } from '@/lib/supabase/client'
@@ -48,7 +48,14 @@ export default function ProjectForm({ project }: ProjectFormProps) {
     (tag) =>
       tag.toLowerCase().includes(techInput.toLowerCase()) &&
       !techStack.includes(tag)
-  )
+  ).sort((a, b) => {
+    const q = techInput.toLowerCase()
+    const aStarts = a.toLowerCase().startsWith(q)
+    const bStarts = b.toLowerCase().startsWith(q)
+    if (aStarts && !bStarts) return -1
+    if (!aStarts && bStarts) return 1
+    return a.localeCompare(b)
+  })
 
   const MAX_IMAGES = 5
 
