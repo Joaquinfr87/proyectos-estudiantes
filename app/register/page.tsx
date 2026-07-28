@@ -14,8 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { signUp, signInWithGithub } from '@/lib/actions/auth'
-import {  GitFork, Loader2, Eye, EyeOff } from 'lucide-react'
+import { signUp } from '@/lib/actions/auth'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -53,12 +53,6 @@ export default function RegisterPage() {
     } else {
       setSuccess(true)
     }
-  }
-
-  const handleGithubRegister = async () => {
-    setLoading(true)
-    setError(null)
-    await signInWithGithub()
   }
 
   if (success) {
@@ -108,32 +102,7 @@ export default function RegisterPage() {
             Registrate para compartir tus proyectos con la comunidad
           </CardDescription>
         </CardHeader>
-        <CardContent className='space-y-4'>
-          <Button
-            variant='outline'
-            className='flex w-full items-center gap-2 border-zinc-300 py-5 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900'
-            onClick={handleGithubRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <Loader2 className='h-4 w-4 animate-spin' />
-            ) : (
-              <GitFork className='h-4 w-4' />
-            )}
-            Registrarse con GitHub
-          </Button>
-
-          <div className='relative'>
-            <div className='absolute inset-0 flex items-center'>
-              <span className='w-full border-t border-zinc-200 dark:border-zinc-800' />
-            </div>
-            <div className='relative flex justify-center text-xs uppercase'>
-              <span className='bg-white px-2 text-zinc-400 dark:bg-black dark:text-zinc-600'>
-                O con email
-              </span>
-            </div>
-          </div>
-
+        <CardContent>
           <form onSubmit={handleSubmit} className='space-y-4'>
             <div className='space-y-2'>
               <Label htmlFor='full_name'>Nombre Completo</Label>
