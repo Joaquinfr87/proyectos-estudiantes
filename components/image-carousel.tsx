@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ImageCarouselProps {
@@ -9,6 +9,8 @@ interface ImageCarouselProps {
   alt: string
   className?: string
   aspectRatio?: 'video' | 'square'
+  autoPlay?: boolean
+  interval?: number
 }
 
 export default function ImageCarousel({
@@ -16,16 +18,33 @@ export default function ImageCarousel({
   alt,
   className,
   aspectRatio = 'video',
+  autoPlay = false,
+  interval = 4000,
 }: ImageCarouselProps) {
   const [current, setCurrent] = useState(0)
+  const [paused, setPaused] = useState(false)
+
+  const next = useCallback(
+    () => setCurrent((i) => (i === images.length - 1 ? 0 : i + 1)),
+    [images.length]
+  )
+
+  const prev = () => setCurrent((i) => (i === 0 ? images.length - 1 : i - 1))
+
+  useEffect(() => {
+    if (!autoPlay || images.length <= 1 || paused) return
+    const id = setInterval(next, interval)
+    return () => clearInterval(id)
+  }, [autoPlay, interval, paused, next, images.length])
 
   if (!images || images.length === 0) return null
 
-  const prev = () => setCurrent((i) => (i === 0 ? images.length - 1 : i - 1))
-  const next = () => setCurrent((i) => (i === images.length - 1 ? 0 : i + 1))
-
   return (
-    <div className={cn('relative group', className)}>
+    <div
+      className={cn('relative group', className)}
+      onMouseEnter={() => autoPlay && setPaused(true)}
+      onMouseLeave={() => autoPlay && setPaused(false)}
+    >
       {/* Main image */}
       <div
         className={cn(
@@ -39,7 +58,7 @@ export default function ImageCarousel({
           className='h-full w-full object-cover transition-opacity duration-300'
         />
 
-        {/* Nav arrows - only if more than 1 image */}
+        {/* Nav arrows */}
         {images.length > 1 && (
           <>
             <button
@@ -59,8 +78,25 @@ export default function ImageCarousel({
 
         {/* Counter badge */}
         {images.length > 1 && (
-          <div className='absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white'>
-            {current + 1} / {images.length}
+          <div className='absolute bottom-3 right-3 flex items-center gap-2'>
+            {autoPlay && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setPaused(!paused)
+                }}
+                className='flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80'
+              >
+                {paused ? (
+                  <Play className='h-3 w-3' />
+                ) : (
+                  <Pause className='h-3 w-3' />
+                )}
+              </button>
+            )}
+            <span className='rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white'>
+              {current + 1} / {images.length}
+            </span>
           </div>
         )}
       </div>

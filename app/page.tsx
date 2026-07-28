@@ -1,8 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { LinkButton } from '@/components/link-button'
 import { Badge } from '@/components/ui/badge'
@@ -19,108 +18,18 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import ProjectCard from '@/components/project-card'
 import ImageCarousel from '@/components/image-carousel'
-import ProjectFilters from '@/components/project-filters'
-import ProjectPagination from '@/components/project-pagination'
 import type { Project } from '@/lib/types'
 
-const ITEMS_PER_PAGE = 12
-
-interface HomeState {
-  randomProject: Project | null
-  projects: Project[]
-  total: number
-  totalPages: number
-  currentPage: number
-  allTechStacks: string[]
-  allAuthors: { id: string; full_name: string | null }[]
-  loading: boolean
-}
-
 function HomeContent() {
-  const searchParams = useSearchParams()
-
-  const q = searchParams.get('q') || ''
-  const tech = searchParams.get('tech') || ''
-  const author = searchParams.get('author') || ''
-  const page = Number(searchParams.get('page')) || 1
-
-  const [state, setState] = useState<HomeState>({
-    randomProject: null,
-    projects: [],
-    total: 0,
-    totalPages: 0,
-    currentPage: page,
-    allTechStacks: [],
-    allAuthors: [],
-    loading: true,
-  })
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let cancelled = false
     const supabase = createClient()
 
     async function fetchData() {
       try {
-        const [randomResult, techResult, authorsResult] = await Promise.all([
-          supabase.from('projects').select('id').limit(100),
-          supabase.from('projects').select('tech_stack'),
-          supabase.from('projects').select('user_id'),
-        ])
-
-        let randomProject: Project | null = null
-        if (randomResult.data && randomResult.data.length > 0) {
-          const randomIndex = Math.floor(
-            Math.random() * randomResult.data.length
-          )
-          const randomId = randomResult.data[randomIndex].id
-          const { data: randomProj } = await supabase
-            .from('projects')
-            .select(
-              `
-              *,
-              profiles:user_id (
-                full_name,
-                avatar_url,
-                github_username
-              )
-            `
-            )
-            .eq('id', randomId)
-            .single()
-          randomProject = randomProj as Project
-        }
-
-        let allTechStacks: string[] = []
-        if (techResult.data) {
-          const allTechs = new Set<string>()
-          techResult.data.forEach((project) =>
-            project.tech_stack?.forEach((t: string) => allTechs.add(t))
-          )
-          allTechStacks = Array.from(allTechs).sort()
-        }
-
-        let allAuthors: { id: string; full_name: string | null }[] = []
-        if (authorsResult.data) {
-          const userIds = [
-            ...new Set(authorsResult.data.map((p) => p.user_id)),
-          ]
-          const { data: profiles } = await supabase
-            .from('profiles')
-            .select('id, full_name')
-            .in('id', userIds)
-            .order('full_name', { ascending: true })
-          allAuthors =
-            profiles?.map((p) => ({ id: p.id, full_name: p.full_name })) || []
-        }
-
-        let projects: Project[] = []
-        let total = 0
-        let totalPages = 0
-
-        const from = (page - 1) * ITEMS_PER_PAGE
-        const to = from + ITEMS_PER_PAGE - 1
-
-        let query = supabase
+        const { data, error } = await supabase
           .from('projects')
           .select(
             `
@@ -130,163 +39,82 @@ function HomeContent() {
               avatar_url,
               github_username
             )
-          `,
-            { count: 'exact' }
+          `
           )
-
-        if (q) {
-          query = query.or(
-            `title.ilike.%${q}%,description.ilike.%${q}%`
-          )
-        }
-
-        if (tech) {
-          query = query.contains('tech_stack', [tech])
-        }
-
-        if (author) {
-          const { data: authorProfiles } = await supabase
-            .from('profiles')
-            .select('id')
-            .ilike('full_name', `%${author}%`)
-
-          if (authorProfiles && authorProfiles.length > 0) {
-            const authorIds = authorProfiles.map((p) => p.id)
-            query = query.in('user_id', authorIds)
-          }
-        }
-
-        const { data: filteredProjects, count, error } = await query
           .order('created_at', { ascending: false })
-          .range(from, to)
+          .limit(50)
 
-        if (!error) {
-          projects = (filteredProjects as Project[]) || []
-          total = count || 0
-          totalPages = Math.ceil(total / ITEMS_PER_PAGE)
-        }
-
-        if (!cancelled) {
-          setState({
-            randomProject,
-            projects,
-            total,
-            totalPages,
-            currentPage: page,
-            allTechStacks,
-            allAuthors,
-            loading: false,
-          })
+        if (!error && data) {
+          // Shuffle for random order
+          const shuffled = [...data].sort(() => Math.random() - 0.5)
+          setProjects(shuffled as Project[])
         }
       } catch (err) {
         console.error('Error fetching home data:', err)
-        if (!cancelled) {
-          setState((prev) => ({ ...prev, loading: false }))
-        }
+      } finally {
+        setLoading(false)
       }
     }
 
     fetchData()
+  }, [])
 
-    return () => {
-      cancelled = true
-    }
-  }, [page, q, tech, author])
-
-  const hasActiveFilters = !!(q || tech || author)
-
-  if (state.loading) {
+  if (loading) {
     return <HomeSkeleton />
   }
 
+  const featuredProject = projects.length > 0 ? projects[0] : null
+
   return (
     <div className='flex flex-col'>
-      {/* ===== FEATURED PROJECT HERO ===== */}
-      {state.randomProject ? (
-        <FeaturedHero project={state.randomProject} />
+      {/* ===== HERO ===== */}
+      {featuredProject ? (
+        <FeaturedHero project={featuredProject} />
       ) : (
         <EmptyHero />
       )}
 
-      {/* ===== PROJECTS SECTION ===== */}
-      <section className='mx-auto w-full max-w-6xl px-4 py-12 sm:px-6'>
-        {/* Section header */}
-        <div className='mb-8 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>
-              {hasActiveFilters
-                ? 'Resultados de búsqueda'
-                : 'Todos los proyectos'}
-            </h2>
-            <p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>
-              {hasActiveFilters
-                ? `${state.total} proyecto${state.total !== 1 ? 's' : ''} encontrado${state.total !== 1 ? 's' : ''}`
-                : `Explora ${state.total} proyecto${state.total !== 1 ? 's' : ''} de la comunidad`}
-            </p>
+      {/* ===== PROJECTS GRID ===== */}
+      {projects.length > 0 && (
+        <section className='mx-auto w-full max-w-6xl px-4 py-12 sm:px-6'>
+          <div className='mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
+            <div>
+              <h2 className='text-2xl font-bold tracking-tight'>
+                Proyectos de la comunidad
+              </h2>
+              <p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>
+                {projects.length} proyecto{projects.length !== 1 ? 's' : ''} publicado{projects.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <Button
+              size='sm'
+              variant='outline'
+              className='shrink-0'
+              render={<Link href='/projects' />}
+            >
+              <Search className='mr-1.5 h-4 w-4' />
+              Buscar proyectos
+            </Button>
           </div>
-          <Button
-            size='sm'
-            className='shrink-0'
-            render={<Link href='/projects/new' />}
-          >
-            <Code2 className='mr-1.5 h-4 w-4' />
-            Publicar proyecto
-          </Button>
-        </div>
 
-        {/* Filters */}
-        <div className='mb-8'>
-          <ProjectFilters
-            allTechStacks={state.allTechStacks}
-            allAuthors={state.allAuthors}
-          />
-        </div>
-
-        {/* Project Grid */}
-        {state.projects.length > 0 ? (
           <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
-            {state.projects.map((project) => (
+            {projects.slice(0, 9).map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>
-        ) : (
-          <div className='rounded-xl border-2 border-dashed border-zinc-200 p-16 text-center dark:border-zinc-800'>
-            <Search className='mx-auto h-12 w-12 text-zinc-300 dark:text-zinc-600' />
-            <h3 className='mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50'>
-              No se encontraron proyectos
-            </h3>
-            <p className='mt-2 text-sm text-zinc-500'>
-              {hasActiveFilters
-                ? 'Intenta con otros filtros o limpia la búsqueda.'
-                : 'Sé el primero en compartir tu proyecto.'}
-            </p>
-            {hasActiveFilters ? (
-              <Button
-                variant='outline'
-                className='mt-6'
-                render={<Link href='/' />}
-              >
-                Limpiar filtros
-              </Button>
-            ) : (
-              <Button className='mt-6' render={<Link href='/projects/new' />}>
-                Publicar Proyecto
-              </Button>
-            )}
-          </div>
-        )}
 
-        {/* Pagination */}
-        <div className='mt-10'>
-          <ProjectPagination
-            currentPage={state.currentPage}
-            totalPages={state.totalPages}
-            total={state.total}
-          />
-        </div>
-      </section>
+          {projects.length > 9 && (
+            <div className='mt-10 text-center'>
+              <Button size='lg' variant='outline' render={<Link href='/projects' />}>
+                Ver todos los proyectos
+                <ArrowRight className='ml-2 h-4 w-4' />
+              </Button>
+            </div>
+          )}
+        </section>
+      )}
 
-      {/* ===== MARKETING SECTION (simplified) ===== */}
+      {/* ===== MARKETING SECTION ===== */}
       <section className='border-t border-zinc-200 dark:border-zinc-800'>
         <div className='mx-auto max-w-6xl px-4 py-16 sm:px-6'>
           <div className='mx-auto max-w-2xl text-center'>
@@ -331,18 +159,13 @@ function HomeContent() {
 }
 
 export default function Home() {
-  return (
-    <Suspense fallback={<HomeSkeleton />}>
-      <HomeContent />
-    </Suspense>
-  )
+  return <HomeContent />
 }
 
 /* ===== LOADING SKELETON ===== */
 function HomeSkeleton() {
   return (
     <div className='flex flex-col'>
-      {/* Hero skeleton */}
       <section className='border-b border-zinc-200 dark:border-zinc-800'>
         <div className='mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16'>
           <div className='mb-6 h-6 w-40 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800' />
@@ -358,13 +181,12 @@ function HomeSkeleton() {
               </div>
             </div>
             <div className='lg:col-span-2'>
-              <div className='aspect-[4/3] w-full animate-pulse rounded-2xl bg-zinc-200 dark:bg-zinc-800' />
+              <div className='aspect-video w-full animate-pulse rounded-2xl bg-zinc-200 dark:bg-zinc-800' />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Projects grid skeleton */}
       <section className='mx-auto w-full max-w-6xl px-4 py-12 sm:px-6'>
         <div className='mb-8 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between'>
           <div className='space-y-2'>
@@ -372,7 +194,6 @@ function HomeSkeleton() {
             <div className='h-4 w-64 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800' />
           </div>
         </div>
-        <div className='mb-8 h-11 w-full animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800' />
         <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
           {[...Array(6)].map((_, i) => (
             <div
@@ -415,11 +236,9 @@ function FeaturedHero({ project }: { project: Project }) {
 
   return (
     <section className='relative overflow-hidden border-b border-zinc-200 bg-gradient-to-br from-zinc-50 via-white to-violet-50 dark:border-zinc-800 dark:from-zinc-950 dark:via-black dark:to-violet-950/20'>
-      {/* Background pattern */}
       <div className='absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]' />
 
       <div className='relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16'>
-        {/* Label */}
         <div className='mb-6 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50/80 px-4 py-1.5 text-xs font-medium text-violet-700 dark:border-violet-800 dark:bg-violet-950/30 dark:text-violet-300'>
           <Sparkles className='h-3.5 w-3.5' />
           Proyecto destacado
@@ -516,13 +335,15 @@ function FeaturedHero({ project }: { project: Project }) {
             </div>
           </div>
 
-          {/* Project image */}
+          {/* Project image with auto-carousel */}
           <div className='lg:col-span-2'>
             <Link href={`/projects/${project.id}`}>
               {project.image_urls && project.image_urls.length > 0 ? (
                 <ImageCarousel
                   images={project.image_urls}
                   alt={project.title}
+                  autoPlay
+                  interval={4000}
                 />
               ) : (
                 <div className='flex aspect-video items-center justify-center rounded-2xl border border-zinc-200 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:border-zinc-700 dark:from-zinc-800 dark:to-zinc-900'>
@@ -537,7 +358,7 @@ function FeaturedHero({ project }: { project: Project }) {
   )
 }
 
-/* ===== EMPTY HERO (no projects yet) ===== */
+/* ===== EMPTY HERO ===== */
 function EmptyHero() {
   return (
     <section className='relative overflow-hidden border-b border-zinc-200 dark:border-zinc-800'>
