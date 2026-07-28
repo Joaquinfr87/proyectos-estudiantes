@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { User } from '@supabase/supabase-js'
-import { FileCode, GitFork, LogOut, UserRound, Menu, X } from 'lucide-react'
+import { FileCode, LogOut, UserRound, LayoutDashboard, Menu, X } from 'lucide-react'
 
 export default function Header() {
   const router = useRouter()
@@ -82,49 +82,57 @@ export default function Header() {
           </Link>
 
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger className='flex items-center gap-2 rounded-full outline-none ring-0 focus:ring-0'>
-                <Avatar className='h-8 w-8 border-2 border-zinc-200 dark:border-zinc-700'>
-                  <AvatarImage src={avatarUrl || ''} alt='Avatar' />
-                  <AvatarFallback className='bg-violet-100 text-xs font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'>
-                    {user.email?.charAt(0).toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align='end'
-                className='w-56 rounded-xl border-zinc-200 bg-white p-1.5 shadow-lg dark:border-zinc-800 dark:bg-zinc-950'
+            <>
+              <Link
+                href='/dashboard'
+                className='text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50'
               >
-                <div className='px-2 py-1.5'>
-                  <p className='truncate text-sm font-medium text-zinc-900 dark:text-zinc-50'>
-                    {user.email}
-                  </p>
-                </div>
-                <DropdownMenuSeparator className='bg-zinc-200 dark:bg-zinc-800' />
-                <DropdownMenuItem
-                  className='flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
-                  render={<Link href='/profile' />}
+                Mi Dashboard
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger className='flex items-center gap-2 rounded-full outline-none ring-0 focus:ring-0'>
+                  <Avatar className='h-8 w-8 border-2 border-zinc-200 dark:border-zinc-700'>
+                    <AvatarImage src={avatarUrl || ''} alt='Avatar' />
+                    <AvatarFallback className='bg-violet-100 text-xs font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'>
+                      {user.email?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align='end'
+                  className='w-56 rounded-xl border-zinc-200 bg-white p-1.5 shadow-lg dark:border-zinc-800 dark:bg-zinc-950'
                 >
-                  <UserRound className='h-4 w-4' />
-                  Mi Perfil
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className='flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
-                  render={<Link href='/projects/new' />}
-                >
-                  <GitFork className='h-4 w-4' />
-                  Nuevo Proyecto
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className='bg-zinc-200 dark:bg-zinc-800' />
-                <DropdownMenuItem
-                  className='flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50'
-                  onClick={handleSignOut}
-                >
-                  <LogOut className='h-4 w-4' />
-                  Cerrar Sesión
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <div className='px-2 py-1.5'>
+                    <p className='truncate text-sm font-medium text-zinc-900 dark:text-zinc-50'>
+                      {user.email}
+                    </p>
+                  </div>
+                  <DropdownMenuSeparator className='bg-zinc-200 dark:bg-zinc-800' />
+                  <DropdownMenuItem
+                    className='flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                    render={<Link href='/dashboard' />}
+                  >
+                    <LayoutDashboard className='h-4 w-4' />
+                    Mi Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className='flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                    render={<Link href='/profile' />}
+                  >
+                    <UserRound className='h-4 w-4' />
+                    Mi Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className='bg-zinc-200 dark:bg-zinc-800' />
+                  <DropdownMenuItem
+                    className='flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50'
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className='h-4 w-4' />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <div className='flex items-center gap-3'>
               <Button variant='ghost' size='sm' render={<Link href='/login' />}>
@@ -164,18 +172,18 @@ export default function Header() {
             {user ? (
               <>
                 <Link
+                  href='/dashboard'
+                  onClick={() => setMobileOpen(false)}
+                  className='rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
+                >
+                  Mi Dashboard
+                </Link>
+                <Link
                   href='/profile'
                   onClick={() => setMobileOpen(false)}
                   className='rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
                 >
                   Mi Perfil
-                </Link>
-                <Link
-                  href='/projects/new'
-                  onClick={() => setMobileOpen(false)}
-                  className='rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
-                >
-                  Nuevo Proyecto
                 </Link>
                 <button
                   onClick={() => {
