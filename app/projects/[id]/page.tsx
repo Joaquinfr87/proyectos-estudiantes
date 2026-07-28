@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { LinkButton } from '@/components/link-button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import ImageCarousel from '@/components/image-carousel'
 import {
   GitFork,
   Globe,
@@ -62,11 +63,10 @@ export default async function ProjectDetailPage({
 
       {/* Project Image */}
       {project.image_urls && project.image_urls.length > 0 && (
-        <div className='mb-8 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800'>
-          <img
-            src={project.image_urls[0]}
+        <div className='mb-8'>
+          <ImageCarousel
+            images={project.image_urls}
             alt={project.title}
-            className='aspect-video w-full object-cover'
           />
         </div>
       )}

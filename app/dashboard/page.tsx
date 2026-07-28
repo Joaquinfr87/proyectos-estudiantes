@@ -128,11 +128,18 @@ export default function DashboardPage() {
               <Link href={`/projects/${project.id}`}>
                 <div className='relative aspect-video w-full overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900'>
                   {project.image_urls && project.image_urls.length > 0 ? (
-                    <img
-                      src={project.image_urls[0]}
-                      alt={project.title}
-                      className='h-full w-full object-cover transition-transform duration-500 group-hover:scale-105'
-                    />
+                    <>
+                      <img
+                        src={project.image_urls[0]}
+                        alt={project.title}
+                        className='h-full w-full object-cover transition-transform duration-500 group-hover:scale-105'
+                      />
+                      {project.image_urls.length > 1 && (
+                        <div className='absolute top-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white'>
+                          +{project.image_urls.length - 1}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className='flex h-full items-center justify-center'>
                       <GitFork className='h-12 w-12 text-zinc-300 dark:text-zinc-600' />

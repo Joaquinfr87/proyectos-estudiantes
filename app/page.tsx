@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import ProjectCard from '@/components/project-card'
+import ImageCarousel from '@/components/image-carousel'
 import ProjectFilters from '@/components/project-filters'
 import ProjectPagination from '@/components/project-pagination'
 import type { Project } from '@/lib/types'
@@ -518,19 +519,16 @@ function FeaturedHero({ project }: { project: Project }) {
           {/* Project image */}
           <div className='lg:col-span-2'>
             <Link href={`/projects/${project.id}`}>
-              <div className='overflow-hidden rounded-2xl border border-zinc-200 bg-gradient-to-br from-zinc-100 to-zinc-200 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-zinc-700 dark:from-zinc-800 dark:to-zinc-900'>
-                {project.image_urls && project.image_urls.length > 0 ? (
-                  <img
-                    src={project.image_urls[0]}
-                    alt={project.title}
-                    className='aspect-[4/3] w-full object-cover'
-                  />
-                ) : (
-                  <div className='flex aspect-[4/3] items-center justify-center'>
-                    <Code2 className='h-16 w-16 text-zinc-300 dark:text-zinc-600' />
-                  </div>
-                )}
-              </div>
+              {project.image_urls && project.image_urls.length > 0 ? (
+                <ImageCarousel
+                  images={project.image_urls}
+                  alt={project.title}
+                />
+              ) : (
+                <div className='flex aspect-video items-center justify-center rounded-2xl border border-zinc-200 bg-gradient-to-br from-zinc-100 to-zinc-200 dark:border-zinc-700 dark:from-zinc-800 dark:to-zinc-900'>
+                  <Code2 className='h-16 w-16 text-zinc-300 dark:text-zinc-600' />
+                </div>
+              )}
             </Link>
           </div>
         </div>
