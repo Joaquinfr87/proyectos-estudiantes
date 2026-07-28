@@ -14,6 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/client'
+import { useEffect } from 'react'
 import { signUp } from '@/lib/actions/auth'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
 
@@ -23,6 +25,20 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  useEffect(() => {
+    let ignore = false
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        router.push('/dashboard')
+      } else if (!ignore) {
+        setCheckingAuth(false)
+      }
+    })
+    return () => { ignore = true }
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -53,6 +69,14 @@ export default function RegisterPage() {
     } else {
       setSuccess(true)
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className='flex min-h-[calc(100vh-4rem)] items-center justify-center'>
+        <Loader2 className='h-8 w-8 animate-spin text-zinc-400' />
+      </div>
+    )
   }
 
   if (success) {
