@@ -281,8 +281,11 @@ function ProjectsContent() {
         </form>
 
         {/* Dropdowns */}
-        <div className='flex flex-wrap items-center gap-3'>
+        <div className='flex flex-wrap items-end gap-3'>
           <div className='w-full sm:w-44'>
+            <label className='mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
+              Ordenar por
+            </label>
             <Select value={sort} onValueChange={handleSortChange}>
               <SelectTrigger className='h-9 text-sm bg-white dark:bg-zinc-950'>
                 <ArrowUpDown className='mr-1.5 h-3.5 w-3.5' />
@@ -298,6 +301,9 @@ function ProjectsContent() {
           </div>
 
           <div className='w-full sm:w-44'>
+            <label className='mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
+              Tecnología
+            </label>
             <Select value={tech || 'all'} onValueChange={handleTechChange}>
               <SelectTrigger className='h-9 text-sm bg-white dark:bg-zinc-950'>
                 <SelectValue placeholder='Tecnología' />
@@ -314,6 +320,9 @@ function ProjectsContent() {
           </div>
 
           <div className='w-full sm:w-44'>
+            <label className='mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
+              Autor
+            </label>
             <Select value={author || 'all'} onValueChange={handleAuthorChange}>
               <SelectTrigger className='h-9 text-sm bg-white dark:bg-zinc-950'>
                 <SelectValue placeholder='Autor' />
