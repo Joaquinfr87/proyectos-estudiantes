@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getProfile } from '@/lib/actions/profile'
-import { getProjectsByUser } from '@/lib/actions/projects'
+import { createClient } from '@/lib/supabase/server'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import ProjectCard from '@/components/project-card'
 import { ArrowLeft, GitFork, Calendar, Code2, ExternalLink } from 'lucide-react'
+import type { Project } from '@/lib/types'
 
 export default async function PublicProfilePage({
   params,
@@ -12,13 +12,35 @@ export default async function PublicProfilePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const profile = await getProfile(id)
+
+  const supabase = await createClient()
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', id)
+    .single()
 
   if (!profile) {
     notFound()
   }
 
-  const projects = await getProjectsByUser(id)
+  const { data: projects } = await supabase
+    .from('projects')
+    .select(
+      `
+      *,
+      profiles:user_id (
+        full_name,
+        avatar_url,
+        github_username
+      )
+    `
+    )
+    .eq('user_id', id)
+    .order('created_at', { ascending: false })
+
+  const projectsList = (projects as Project[]) || []
 
   const initials = (profile.full_name || '')
     .split(' ')
@@ -91,7 +113,7 @@ export default async function PublicProfilePage({
             <div className='shrink-0'>
               <span className='inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-3.5 py-1.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'>
                 <Code2 className='h-3.5 w-3.5' />
-                {projects.length} proyecto{projects.length !== 1 ? 's' : ''}
+                {projectsList.length} proyecto{projectsList.length !== 1 ? 's' : ''}
               </span>
             </div>
           </div>
@@ -115,14 +137,14 @@ export default async function PublicProfilePage({
               Proyectos de {profile.full_name?.split(' ')[0] || 'este usuario'}
             </h2>
             <p className='mt-0.5 text-sm text-zinc-500 dark:text-zinc-400'>
-              {projects.length} proyecto{projects.length !== 1 ? 's' : ''} publicado{projects.length !== 1 ? 's' : ''}
+              {projectsList.length} proyecto{projectsList.length !== 1 ? 's' : ''} publicado{projectsList.length !== 1 ? 's' : ''}
             </p>
           </div>
         </div>
 
-        {projects.length > 0 ? (
+        {projectsList.length > 0 ? (
           <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
-            {projects.map((project) => (
+            {projectsList.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>
