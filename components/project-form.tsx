@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { X, Plus, Loader2, GitFork, Globe, Image, Upload } from 'lucide-react'
+import { X, Plus, Loader2, GitFork, Globe, Image, Upload, ChevronsUpDown, Check, Search } from 'lucide-react'
 import { createProject, updateProject } from '@/lib/actions/projects'
 import { uploadProjectImage } from '@/lib/supabase/storage'
 import { createClient } from '@/lib/supabase/client'
+import { ALL_TECH_TAGS } from '@/lib/tech-tags'
 import type { Project } from '@/lib/types'
 
 interface ProjectFormProps {
@@ -22,6 +23,7 @@ export default function ProjectForm({ project }: ProjectFormProps) {
     project?.tech_stack || []
   )
   const [techInput, setTechInput] = useState('')
+  const [techDropdownOpen, setTechDropdownOpen] = useState(false)
   const [imageUrls, setImageUrls] = useState<string[]>(
     project?.image_urls || []
   )
@@ -30,17 +32,23 @@ export default function ProjectForm({ project }: ProjectFormProps) {
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const addTech = () => {
-    const tech = techInput.trim()
+  const addTech = (tech: string) => {
     if (tech && !techStack.includes(tech)) {
       setTechStack([...techStack, tech])
       setTechInput('')
+      setTechDropdownOpen(false)
     }
   }
 
   const removeTech = (tech: string) => {
     setTechStack(techStack.filter((t) => t !== tech))
   }
+
+  const filteredTechTags = ALL_TECH_TAGS.filter(
+    (tag) =>
+      tag.toLowerCase().includes(techInput.toLowerCase()) &&
+      !techStack.includes(tag)
+  )
 
   const MAX_IMAGES = 5
 
@@ -251,29 +259,78 @@ export default function ProjectForm({ project }: ProjectFormProps) {
       </div>
 
       <div className='space-y-2'>
-        <Label className='text-sm font-medium'>Tecnologías</Label>
-        <div className='flex gap-2'>
-          <Input
-            value={techInput}
-            onChange={(e) => setTechInput(e.target.value)}
-            placeholder='Ej: React, TypeScript, Tailwind...'
-            className='h-10'
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                addTech()
-              }
-            }}
-          />
-          <Button
-            type='button'
-            variant='outline'
-            onClick={addTech}
-            className='h-10 px-3'
-          >
-            <Plus className='h-4 w-4' />
-          </Button>
+        <Label className='text-sm font-medium'>
+          <Search className='mr-1.5 inline-block h-3.5 w-3.5' />
+          Tecnologías
+        </Label>
+        <div className='relative'>
+          <div className='flex gap-2'>
+            <div className='relative flex-1'>
+              <Input
+                value={techInput}
+                onChange={(e) => {
+                  setTechInput(e.target.value)
+                  setTechDropdownOpen(true)
+                }}
+                onFocus={() => setTechDropdownOpen(true)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    if (filteredTechTags.length > 0) {
+                      addTech(filteredTechTags[0])
+                    }
+                  }
+                  if (e.key === 'Escape') {
+                    setTechDropdownOpen(false)
+                  }
+                }}
+                placeholder='Buscar tecnologías...'
+                className='h-10 pr-10'
+              />
+              <button
+                type='button'
+                onClick={() => setTechDropdownOpen(!techDropdownOpen)}
+                className='absolute right-1 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:hover:text-zinc-300 dark:hover:bg-zinc-800'
+              >
+                <ChevronsUpDown className='h-4 w-4' />
+              </button>
+            </div>
+          </div>
+
+          {/* Dropdown de tecnologías predefinidas */}
+          {techDropdownOpen && (
+            <>
+              {/* Overlay para cerrar al hacer clic fuera */}
+              <div
+                className='fixed inset-0 z-10'
+                onClick={() => setTechDropdownOpen(false)}
+              />
+              <div className='absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-950'>
+                {filteredTechTags.length > 0 ? (
+                  filteredTechTags.map((tag) => (
+                    <button
+                      key={tag}
+                      type='button'
+                      onClick={() => addTech(tag)}
+                      className='flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                    >
+                      <Plus className='h-3.5 w-3.5 shrink-0 text-zinc-400' />
+                      {tag}
+                    </button>
+                  ))
+                ) : (
+                  <div className='px-3 py-4 text-center text-sm text-zinc-400'>
+                    {techInput.trim()
+                      ? `No se encontró "${techInput}"`
+                      : 'Escribe para buscar tecnologías'}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
+
+        {/* Tags seleccionados */}
         {techStack.length > 0 && (
           <div className='flex flex-wrap gap-1.5 pt-1'>
             {techStack.map((tech) => (
@@ -293,6 +350,9 @@ export default function ProjectForm({ project }: ProjectFormProps) {
             ))}
           </div>
         )}
+        <p className='text-xs text-zinc-400'>
+          Selecciona las tecnologías de la lista predefinida para mantener la consistencia.
+        </p>
       </div>
 
       <div className='flex items-center gap-3 pt-2'>

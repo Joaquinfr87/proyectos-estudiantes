@@ -14,15 +14,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { signInWithGithub } from '@/lib/actions/auth'
 import { createClient } from '@/lib/supabase/client'
-import {  GitFork, Loader2, Eye, EyeOff } from 'lucide-react'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [githubLoading, setGithubLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -49,12 +47,6 @@ export default function LoginPage() {
     }
   }
 
-  const handleGithubLogin = async () => {
-    setGithubLoading(true)
-    setError(null)
-    await signInWithGithub()
-  }
-
   return (
     <div className='flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12'>
       <Card className='w-full max-w-md border-zinc-200 shadow-xl dark:border-zinc-800'>
@@ -66,32 +58,7 @@ export default function LoginPage() {
             Ingresa con tu cuenta para compartir tus proyectos
           </CardDescription>
         </CardHeader>
-        <CardContent className='space-y-4'>
-          <Button
-            variant='outline'
-            className='flex w-full items-center gap-2 border-zinc-300 py-5 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900'
-            onClick={handleGithubLogin}
-            disabled={githubLoading}
-          >
-            {githubLoading ? (
-              <Loader2 className='h-4 w-4 animate-spin' />
-            ) : (
-              <GitFork className='h-4 w-4' />
-            )}
-            Continuar con GitHub
-          </Button>
-
-          <div className='relative'>
-            <div className='absolute inset-0 flex items-center'>
-              <span className='w-full border-t border-zinc-200 dark:border-zinc-800' />
-            </div>
-            <div className='relative flex justify-center text-xs uppercase'>
-              <span className='bg-white px-2 text-zinc-400 dark:bg-black dark:text-zinc-600'>
-                O con email
-              </span>
-            </div>
-          </div>
-
+        <CardContent>
           <form onSubmit={handleSubmit} className='space-y-4'>
             <div className='space-y-2'>
               <Label htmlFor='email'>Email</Label>
