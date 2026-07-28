@@ -146,14 +146,6 @@ function HomeContent() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className='border-t border-zinc-200 dark:border-zinc-800'>
-        <div className='mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-center text-sm text-zinc-400 sm:flex-row sm:text-left'>
-          <p>© 2026 ProyectosUPDS. Todos los derechos reservados.</p>
-          <p>Hecho con ❤️ por la comunidad UPDS</p>
-        </div>
-      </footer>
     </div>
   )
 }
@@ -261,7 +253,10 @@ function FeaturedHero({ project }: { project: Project }) {
             </p>
 
             {/* Author */}
-            <div className='mt-6 flex items-center gap-3'>
+            <Link
+              href={`/profile/${project.user_id}`}
+              className='mt-6 flex items-center gap-3 transition-opacity hover:opacity-80'
+            >
               <Avatar className='h-10 w-10 border-2 border-zinc-200 dark:border-zinc-700'>
                 <AvatarImage
                   src={project.profiles?.avatar_url || ''}
@@ -272,7 +267,7 @@ function FeaturedHero({ project }: { project: Project }) {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className='text-sm font-medium text-zinc-900 dark:text-zinc-50'>
+                <p className='text-sm font-medium text-zinc-900 hover:text-violet-600 transition-colors dark:text-zinc-50 dark:hover:text-violet-400'>
                   {project.profiles?.full_name || 'Anónimo'}
                 </p>
                 <div className='flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400'>
@@ -282,7 +277,7 @@ function FeaturedHero({ project }: { project: Project }) {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Tech stack */}
             {project.tech_stack && project.tech_stack.length > 0 && (

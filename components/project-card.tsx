@@ -90,7 +90,10 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       </CardContent>
 
       <CardFooter className='flex items-center justify-between p-4 pt-2'>
-        <div className='flex items-center gap-2'>
+        <Link
+          href={`/profile/${project.user_id}`}
+          className='flex items-center gap-2 transition-opacity hover:opacity-80'
+        >
           <Avatar className='h-6 w-6'>
             <AvatarImage
               src={project.profiles?.avatar_url || ''}
@@ -100,10 +103,10 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               {initials}
             </AvatarFallback>
           </Avatar>
-          <span className='text-xs text-zinc-500 dark:text-zinc-400'>
+          <span className='text-xs text-zinc-500 hover:text-violet-600 dark:text-zinc-400 dark:hover:text-violet-400 transition-colors'>
             {project.profiles?.full_name || 'Anónimo'}
           </span>
-        </div>
+        </Link>
 
         <div className='flex items-center gap-2'>
           <Link

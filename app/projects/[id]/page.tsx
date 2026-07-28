@@ -133,7 +133,10 @@ export default async function ProjectDetailPage({
       </div>
 
       {/* Author Info */}
-      <div className='mb-8 flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950'>
+      <Link
+        href={`/profile/${project.user_id}`}
+        className='mb-8 flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-violet-800'
+      >
         <Avatar className='h-12 w-12 border-2 border-zinc-200 dark:border-zinc-700'>
           <AvatarImage
             src={project.profiles?.avatar_url || ''}
@@ -143,23 +146,23 @@ export default async function ProjectDetailPage({
             {initials}
           </AvatarFallback>
         </Avatar>
-        <div>
-          <p className='font-medium text-zinc-900 dark:text-zinc-50'>
+        <div className='flex-1'>
+          <p className='font-medium text-zinc-900 transition-colors hover:text-violet-600 dark:text-zinc-50 dark:hover:text-violet-400'>
             {project.profiles?.full_name || 'Anónimo'}
           </p>
           {project.profiles?.github_username && (
-            <Link
-              href={`https://github.com/${project.profiles.github_username}`}
-              target='_blank'
-              rel='noopener noreferrer'
-              className='flex items-center gap-1 text-sm text-zinc-500 transition-colors hover:text-violet-600 dark:text-zinc-400 dark:hover:text-violet-400'
+            <span
+              className='flex items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400'
             >
               <GitFork className='h-3.5 w-3.5' />
               @{project.profiles.github_username}
-            </Link>
+            </span>
           )}
         </div>
-      </div>
+        <span className='text-xs font-medium text-zinc-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400'>
+          Ver perfil
+        </span>
+      </Link>
 
       {/* Description */}
       <div className='mb-8'>
