@@ -113,6 +113,15 @@ export default function RootLayout({
             <span className='font-medium text-violet-600'>
               Programación IV
             </span>
+            {' · '}
+            <a
+              href='https://github.com/Joaquinfr87/proyectos-estudiantes'
+              target='_blank'
+              rel='noopener noreferrer'
+              className='font-medium text-zinc-700 underline-offset-2 hover:text-violet-600 hover:underline dark:text-zinc-300 dark:hover:text-violet-400'
+            >
+              Código fuente
+            </a>
           </div>
         </footer>
         <Toaster />
