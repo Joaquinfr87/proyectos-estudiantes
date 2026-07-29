@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://proyectosupds.vercel.app/og-image.png">
-  <img src="https://proyectosupds.vercel.app/og-image.png" alt="ProyectosUPDS Banner" width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Joaquinfr87/proyectos-estudiantes/main/public/og-image.png">
+  <img src="https://raw.githubusercontent.com/Joaquinfr87/proyectos-estudiantes/main/public/og-image.png" alt="ProyectosUPDS Banner" width="100%">
 </picture>
 
 # ProyectosUPDS
@@ -64,6 +64,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=tu-key-anon-publica
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
+
+> `NEXT_PUBLIC_SITE_URL` es importante para las redes sociales — se usa en las etiquetas OG (Open Graph) para que la vista previa de los enlaces muestre la imagen correcta. En producción debe apuntar a tu dominio real.
 
 2. Ejecuta el schema SQL (`supabase/schema.sql`) en tu proyecto de Supabase.
 
