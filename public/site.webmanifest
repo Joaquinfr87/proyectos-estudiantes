@@ -1,0 +1,21 @@
+{
+  "name": "ProyectosUPDS",
+  "short_name": "ProyectosUPDS",
+  "description": "Plataforma para que estudiantes de la UPDS compartan sus proyectos web de GitHub con la comunidad.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/favicons/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicons/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
