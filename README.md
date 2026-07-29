@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://proyectosupds.vercel.app/og-image.png">
+  <img src="https://proyectosupds.vercel.app/og-image.png" alt="ProyectosUPDS Banner" width="100%">
+</picture>
 
-## Getting Started
+# ProyectosUPDS
 
-First, run the development server:
+Plataforma para que estudiantes de la **UPDS** (Universidad Privada Domingo Savio) compartan sus proyectos web con la comunidad.
+
+Creada por [Joaquin Felipez Rojas](https://github.com/Joaquinfr87) para la materia de **Programación IV**.
+
+---
+
+## ✨ Funcionalidades
+
+- Registro e inicio de sesión con email y contraseña
+- Publicar proyectos con descripción, imágenes, stack tecnológico y enlaces (GitHub + demo)
+- Catálogo de proyectos con búsqueda, filtros por tecnología/autor y paginación
+- Perfiles de usuario públicos con avatar y lista de proyectos
+- Dashboard personal para gestionar tus proyectos (CRUD completo)
+- Carga de imágenes para proyectos y avatar
+- Diseño responsive con modo oscuro
+
+---
+
+## 🛠️ Stack Tecnológico
+
+| Categoría | Tecnologías |
+|-----------|------------|
+| **Framework** | Next.js 16 (App Router) |
+| **Lenguaje** | TypeScript, React 19 |
+| **Estilos** | Tailwind CSS v4, shadcn/ui |
+| **Iconos** | Lucide React |
+| **Autenticación** | Supabase Auth |
+| **Base de datos** | Supabase (PostgreSQL + RLS) |
+| **Almacenamiento** | Supabase Storage |
+| **Notificaciones** | Sonner |
+| **Paquete** | pnpm |
+
+---
+
+## 🚀 Empezar
+
+### Requisitos
+
+- Node.js 20+
+- pnpm
+- Cuenta en [Supabase](https://supabase.com)
+
+### Instalación
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Joaquinfr87/proyectos-estudiantes.git
+cd proyectos-estudiantes
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Configuración
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Crea un archivo `.env.local` con tus credenciales de Supabase:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=tu-key-anon-publica
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-## Learn More
+2. Ejecuta el schema SQL (`supabase/schema.sql`) en tu proyecto de Supabase.
 
-To learn more about Next.js, take a look at the following resources:
+3. Inicia el servidor de desarrollo:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Scripts disponibles
 
-## Deploy on Vercel
+| Comando | Descripción |
+|---------|------------|
+| `pnpm dev` | Inicia servidor de desarrollo |
+| `pnpm build` | Build de producción |
+| `pnpm start` | Inicia servidor de producción |
+| `pnpm lint` | Ejecuta ESLint |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📁 Estructura del proyecto
+
+```
+├── app/                  # App Router (páginas y layouts)
+│   ├── dashboard/        # Dashboard del usuario
+│   ├── login/            # Inicio de sesión
+│   ├── profile/          # Perfil propio y público
+│   ├── projects/         # Catálogo, detalle, crear/editar
+│   └── register/         # Registro
+├── components/           # Componentes reutilizables
+│   ├── ui/               # Componentes shadcn/ui
+│   └── ...               # Componentes de la app
+├── lib/                  # Utilidades, types, server actions
+│   ├── actions/          # Server actions (auth, profile, projects)
+│   └── supabase/         # Clientes de Supabase
+├── public/               # Assets estáticos
+│   └── favicons/         # Favicons multi-tamaño
+└── supabase/             # Schema SQL y rollback
+```
+
+---
+
+## 🗄️ Base de datos (Supabase)
+
+### Tablas
+
+- **profiles** — información de usuarios (id, full_name, avatar_url, github_username, bio)
+- **projects** — proyectos publicados (title, description, github_url, live_url, tech_stack, image_urls)
+
+RLS habilitado: los proyectos y perfiles son visibles para todos, pero solo el dueño puede editar/eliminar.
+
+---
+
+## 📄 Licencia
+
+Este proyecto es de uso educativo para la materia de Programación IV — UPDS.
