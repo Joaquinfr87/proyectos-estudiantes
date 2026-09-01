@@ -10,7 +10,7 @@ import {
   CardHeader,
 } from '@/components/ui/card'
 import type { Project } from '@/lib/types'
-import {  GitFork, ExternalLink, Calendar, ChevronRight } from 'lucide-react'
+import {  GitFork, ExternalLink, Eye, Heart } from 'lucide-react'
 
 interface ProjectCardProps {
   project: Project
@@ -108,7 +108,17 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           </span>
         </Link>
 
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-3'>
+          {/* Vistas */}
+          <span className='flex items-center gap-1 text-xs text-zinc-400'>
+            <Eye className='h-3.5 w-3.5' />
+            {project.views || 0}
+          </span>
+          {/* Votos */}
+          <span className='flex items-center gap-1 text-xs text-zinc-400'>
+            <Heart className='h-3.5 w-3.5' />
+            {project.vote_count || 0}
+          </span>
           <Link
             href={project.github_url}
             target='_blank'

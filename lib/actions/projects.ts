@@ -8,6 +8,41 @@ import type { Project } from '@/lib/types'
 
 const ITEMS_PER_PAGE = 12
 
+// Input validation helpers
+function sanitizeString(input: string, maxLength: number = 1000): string {
+  return input.trim().slice(0, maxLength)
+}
+
+function isValidUrl(url: string): boolean {
+  if (!url) return true // optional URLs
+  try {
+    const parsed = new URL(url)
+    return ['http:', 'https:'].includes(parsed.protocol)
+  } catch {
+    return false
+  }
+}
+
+function parseJsonArray(input: string | null, fieldName: string): string[] {
+  if (!input) return []
+  try {
+    const parsed = JSON.parse(input)
+    if (!Array.isArray(parsed)) {
+      throw new Error(`${fieldName} debe ser un array`)
+    }
+    // Validate each item is a string and sanitize
+    return parsed
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => sanitizeString(item, 100))
+      .slice(0, 20) // Max 20 items
+  } catch (e) {
+    if (e instanceof SyntaxError) {
+      throw new Error(`Error al procesar ${fieldName}: formato inválido`)
+    }
+    throw e
+  }
+}
+
 export async function createProject(formData: FormData) {
   const supabase = await createClient()
 
@@ -19,33 +54,64 @@ export async function createProject(formData: FormData) {
     return { error: 'No autenticado' }
   }
 
-  const title = formData.get('title') as string
-  const description = formData.get('description') as string
-  const githubUrl = formData.get('github_url') as string
-  const liveUrl = formData.get('live_url') as string
-  const techStack = JSON.parse(
-    (formData.get('tech_stack') as string) || '[]'
-  ) as string[]
-  const imageUrls = JSON.parse(
-    (formData.get('image_urls') as string) || '[]'
-  ) as string[]
+  try {
+    const title = sanitizeString(formData.get('title') as string, 200)
+    const description = sanitizeString(formData.get('description') as string, 2000)
+    const githubUrl = (formData.get('github_url') as string) || ''
+    const liveUrl = (formData.get('live_url') as string) || ''
+    const techStack = parseJsonArray(formData.get('tech_stack') as string, 'tech_stack')
+    const imageUrls = parseJsonArray(formData.get('image_urls') as string, 'image_urls')
 
-  const { error } = await supabase.from('projects').insert({
-    title,
-    description,
-    github_url: githubUrl,
-    live_url: liveUrl || null,
-    tech_stack: techStack,
-    image_urls: imageUrls,
-    user_id: user.id,
-  })
+    // Validation
+    if (!title || title.length < 3) {
+      return { error: 'El título debe tener al menos 3 caracteres' }
+    }
+    if (!description || description.length < 10) {
+      return { error: 'La descripción debe tener al menos 10 caracteres' }
+    }
+    if (!githubUrl) {
+      return { error: 'La URL de GitHub es requerida' }
+    }
+    if (!isValidUrl(githubUrl)) {
+      return { error: 'La URL de GitHub no es válida' }
+    }
+    if (liveUrl && !isValidUrl(liveUrl)) {
+      return { error: 'La URL de demo no es válida' }
+    }
+    if (techStack.length > 15) {
+      return { error: 'Máximo 15 tecnologías permitidas' }
+    }
+    if (imageUrls.length > 5) {
+      return { error: 'Máximo 5 imágenes permitidas' }
+    }
 
-  if (error) {
-    return { error: error.message }
+    // Validate image URLs are from Supabase storage
+    for (const url of imageUrls) {
+      if (!url.includes('supabase')) {
+        return { error: 'URLs de imágenes no válidas' }
+      }
+    }
+
+    const { error } = await supabase.from('projects').insert({
+      title,
+      description,
+      github_url: githubUrl,
+      live_url: liveUrl || null,
+      tech_stack: techStack,
+      image_urls: imageUrls,
+      user_id: user.id,
+    })
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    revalidatePath('/projects')
+    redirect('/projects')
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Error al crear el proyecto'
+    return { error: message }
   }
-
-  revalidatePath('/projects')
-  redirect('/projects')
 }
 
 export async function updateProject(projectId: string, formData: FormData) {
@@ -59,38 +125,56 @@ export async function updateProject(projectId: string, formData: FormData) {
     return { error: 'No autenticado' }
   }
 
-  const title = formData.get('title') as string
-  const description = formData.get('description') as string
-  const githubUrl = formData.get('github_url') as string
-  const liveUrl = formData.get('live_url') as string
-  const techStack = JSON.parse(
-    (formData.get('tech_stack') as string) || '[]'
-  ) as string[]
-  const imageUrls = JSON.parse(
-    (formData.get('image_urls') as string) || '[]'
-  ) as string[]
+  try {
+    const title = sanitizeString(formData.get('title') as string, 200)
+    const description = sanitizeString(formData.get('description') as string, 2000)
+    const githubUrl = (formData.get('github_url') as string) || ''
+    const liveUrl = (formData.get('live_url') as string) || ''
+    const techStack = parseJsonArray(formData.get('tech_stack') as string, 'tech_stack')
+    const imageUrls = parseJsonArray(formData.get('image_urls') as string, 'image_urls')
 
-  const { error } = await supabase
-    .from('projects')
-    .update({
-      title,
-      description,
-      github_url: githubUrl,
-      live_url: liveUrl || null,
-      tech_stack: techStack,
-      image_urls: imageUrls,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', projectId)
-    .eq('user_id', user.id)
+    // Validation
+    if (!title || title.length < 3) {
+      return { error: 'El título debe tener al menos 3 caracteres' }
+    }
+    if (!description || description.length < 10) {
+      return { error: 'La descripción debe tener al menos 10 caracteres' }
+    }
+    if (!githubUrl) {
+      return { error: 'La URL de GitHub es requerida' }
+    }
+    if (!isValidUrl(githubUrl)) {
+      return { error: 'La URL de GitHub no es válida' }
+    }
+    if (liveUrl && !isValidUrl(liveUrl)) {
+      return { error: 'La URL de demo no es válida' }
+    }
 
-  if (error) {
-    return { error: error.message }
+    const { error } = await supabase
+      .from('projects')
+      .update({
+        title,
+        description,
+        github_url: githubUrl,
+        live_url: liveUrl || null,
+        tech_stack: techStack,
+        image_urls: imageUrls,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', projectId)
+      .eq('user_id', user.id)
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    revalidatePath('/projects')
+    revalidatePath(`/projects/${projectId}`)
+    redirect('/projects')
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Error al actualizar el proyecto'
+    return { error: message }
   }
-
-  revalidatePath('/projects')
-  revalidatePath(`/projects/${projectId}`)
-  redirect('/projects')
 }
 
 export async function deleteProject(projectId: string) {
@@ -258,21 +342,24 @@ export async function getFilteredProjects(
 
   // Filter by search query (title or description)
   if (filters.q) {
-    query = query.or(`title.ilike.%${filters.q}%,description.ilike.%${filters.q}%`)
+    const sanitizedQ = sanitizeString(filters.q, 100)
+    query = query.or(`title.ilike.%${sanitizedQ}%,description.ilike.%${sanitizedQ}%`)
   }
 
   // Filter by technology
   if (filters.tech) {
-    query = query.contains('tech_stack', [filters.tech])
+    const sanitizedTech = sanitizeString(filters.tech, 100)
+    query = query.contains('tech_stack', [sanitizedTech])
   }
 
   // Filter by author (full_name)
   if (filters.author) {
+    const sanitizedAuthor = sanitizeString(filters.author, 100)
     // First find the user IDs with that name
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id')
-      .ilike('full_name', `%${filters.author}%`)
+      .ilike('full_name', `%${sanitizedAuthor}%`)
 
     if (profiles && profiles.length > 0) {
       const userIds = profiles.map((p) => p.id)

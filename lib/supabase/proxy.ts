@@ -52,7 +52,9 @@ export async function updateSession(request: NextRequest) {
     pathname === '/projects' ||
     (pathname.startsWith('/projects/') &&
       !pathname.includes('/new') &&
-      !pathname.includes('/edit'))
+      !pathname.includes('/edit')) ||
+    pathname === '/profiles' ||
+    (pathname.startsWith('/profile/') && pathname !== '/profile')
 
   if (!user && !isPublicRoute) {
     // no user, potentially respond by redirecting the user to the login page

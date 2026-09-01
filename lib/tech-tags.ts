@@ -273,9 +273,9 @@ export const TECH_CATEGORIES = [
   },
 ] as const
 
-// Lista plana de todas las tecnologías (normalizada con capitalización consistente)
-export const ALL_TECH_TAGS: string[] = TECH_CATEGORIES.flatMap(
-  (category) => category.tags
-).sort((a, b) => a.localeCompare(b))
+// Lista plana de todas las tecnologías (sin duplicados, normalizada con capitalización consistente)
+export const ALL_TECH_TAGS: string[] = [
+  ...new Set(TECH_CATEGORIES.flatMap((category) => category.tags)),
+].sort((a, b) => a.localeCompare(b))
 
 

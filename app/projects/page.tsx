@@ -23,6 +23,7 @@ import {
   SlidersHorizontal,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useRealtimeProjects } from '@/lib/hooks/use-realtime-projects'
 import ProjectCard from '@/components/project-card'
 import ProjectPagination from '@/components/project-pagination'
 import type { Project } from '@/lib/types'
@@ -58,6 +59,10 @@ function ProjectsContent() {
     loading: true,
   })
   const [searchInput, setSearchInput] = useState(q)
+
+  useRealtimeProjects(state.projects, (updated) => {
+    setState((prev) => ({ ...prev, projects: updated }))
+  })
 
   const createQueryString = useCallback(
     (updates: Record<string, string | null>) => {
@@ -162,6 +167,12 @@ function ProjectsContent() {
           orderAsc = true
         } else if (sort === 'za') {
           orderColumn = 'title'
+          orderAsc = false
+        } else if (sort === 'most_visited') {
+          orderColumn = 'views'
+          orderAsc = false
+        } else if (sort === 'most_liked') {
+          orderColumn = 'vote_count'
           orderAsc = false
         }
 
@@ -294,6 +305,8 @@ function ProjectsContent() {
               <SelectContent>
                 <SelectItem value='newest'>Más recientes</SelectItem>
                 <SelectItem value='oldest'>Más antiguos</SelectItem>
+                <SelectItem value='most_visited'>Más visitados</SelectItem>
+                <SelectItem value='most_liked'>Más gustados</SelectItem>
                 <SelectItem value='az'>A → Z</SelectItem>
                 <SelectItem value='za'>Z → A</SelectItem>
               </SelectContent>

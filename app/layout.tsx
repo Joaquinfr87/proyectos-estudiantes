@@ -38,7 +38,6 @@ export const metadata: Metadata = {
     'comunidad',
     'Bolivia',
     'universidad',
-    'Programación IV',
   ],
   robots: {
     index: true,
@@ -108,10 +107,6 @@ export default function RootLayout({
             Creada por{' '}
             <span className='font-medium text-zinc-700 dark:text-zinc-300'>
               Joaquin Felipez Rojas
-            </span>{' '}
-            para la materia de{' '}
-            <span className='font-medium text-violet-600'>
-              Programación IV
             </span>
             {' · '}
             <a

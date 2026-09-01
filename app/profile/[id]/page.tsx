@@ -3,7 +3,16 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import ProjectCard from '@/components/project-card'
-import { ArrowLeft, GitFork, Calendar, Code2, ExternalLink } from 'lucide-react'
+import {
+  ArrowLeft,
+  GitFork,
+  Calendar,
+  Code2,
+  ExternalLink,
+  GraduationCap,
+  BookOpen,
+  Wrench,
+} from 'lucide-react'
 import type { Project } from '@/lib/types'
 
 export default async function PublicProfilePage({
@@ -117,6 +126,44 @@ export default async function PublicProfilePage({
               </span>
             </div>
           </div>
+
+          {/* Student info */}
+          {(profile.career || profile.semester) && (
+            <div className='mt-4 flex flex-wrap items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400'>
+              {profile.career && (
+                <div className='flex items-center gap-1.5'>
+                  <BookOpen className='h-4 w-4 text-violet-500' />
+                  {profile.career}
+                </div>
+              )}
+              {profile.semester && (
+                <div className='flex items-center gap-1.5'>
+                  <GraduationCap className='h-4 w-4 text-violet-500' />
+                  {profile.semester}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Skills */}
+          {profile.skills && profile.skills.length > 0 && (
+            <div className='mt-4'>
+              <div className='mb-2 flex items-center gap-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400'>
+                <Wrench className='h-3.5 w-3.5' />
+                Habilidades
+              </div>
+              <div className='flex flex-wrap gap-2'>
+                {profile.skills.map((skill: string) => (
+                  <span
+                    key={skill}
+                    className='inline-block rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Bio */}
           {profile.bio && (

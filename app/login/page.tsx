@@ -1,29 +1,21 @@
 'use client'
 
-import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Loader2 } from 'lucide-react'
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/client'
-import { useEffect } from 'react'
-import { Loader2, Eye, EyeOff } from 'lucide-react'
+import OAuthButtons from '@/components/oauth-buttons'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
   const [checkingAuth, setCheckingAuth] = useState(true)
 
   useEffect(() => {
@@ -36,32 +28,10 @@ export default function LoginPage() {
         setCheckingAuth(false)
       }
     })
-    return () => { ignore = true }
-  }, [router])
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    const formData = new FormData(e.currentTarget)
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
-
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    } else {
-      router.push('/dashboard')
-      router.refresh()
+    return () => {
+      ignore = true
     }
-  }
+  }, [router])
 
   if (checkingAuth) {
     return (
@@ -79,76 +49,17 @@ export default function LoginPage() {
             Iniciar Sesión
           </CardTitle>
           <CardDescription className='text-zinc-500 dark:text-zinc-400'>
-            Ingresa con tu cuenta para compartir tus proyectos
+            Ingresa con tu cuenta de GitHub para compartir tus proyectos
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className='space-y-4'>
-            <div className='space-y-2'>
-              <Label htmlFor='email'>Email</Label>
-              <Input
-                id='email'
-                name='email'
-                type='email'
-                placeholder='tu@email.com'
-                required
-                className='h-10'
-              />
+        <CardContent className='space-y-4'>
+          {error && (
+            <div className='rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-400'>
+              {error}
             </div>
-            <div className='space-y-2'>
-              <Label htmlFor='password'>Contraseña</Label>
-              <div className='relative'>
-                <Input
-                  id='password'
-                  name='password'
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder='••••••••'
-                  required
-                  className='h-10 pr-10'
-                />
-                <button
-                  type='button'
-                  onClick={() => setShowPassword(!showPassword)}
-                  className='absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600'
-                >
-                  {showPassword ? (
-                    <EyeOff className='h-4 w-4' />
-                  ) : (
-                    <Eye className='h-4 w-4' />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div className='rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-400'>
-                {error}
-              </div>
-            )}
-
-            <Button type='submit' className='w-full' disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                  Ingresando...
-                </>
-              ) : (
-                'Ingresar'
-              )}
-            </Button>
-          </form>
+          )}
+          <OAuthButtons onError={setError} />
         </CardContent>
-        <CardFooter className='justify-center border-t border-zinc-200 pt-4 dark:border-zinc-800'>
-          <p className='text-sm text-zinc-500 dark:text-zinc-400'>
-            ¿No tienes cuenta?{' '}
-            <Link
-              href='/register'
-              className='font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300'
-            >
-              Registrarse
-            </Link>
-          </p>
-        </CardFooter>
       </Card>
     </div>
   )

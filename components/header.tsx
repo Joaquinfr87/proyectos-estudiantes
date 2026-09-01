@@ -71,9 +71,6 @@ export default function Header() {
             <span className='text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50 leading-tight'>
               Proyectos<span className='text-violet-600'>UPDS</span>
             </span>
-            <span className='text-[10px] font-medium text-zinc-500 dark:text-zinc-500 leading-tight'>
-              Programación IV
-            </span>
           </div>
         </Link>
 
@@ -84,6 +81,12 @@ export default function Header() {
             className='text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50'
           >
             Proyectos
+          </Link>
+          <Link
+            href='/profiles'
+            className='text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50'
+          >
+            Estudiantes
           </Link>
 
           {user ? (
@@ -139,14 +142,9 @@ export default function Header() {
               </DropdownMenu>
             </>
           ) : (
-            <div className='flex items-center gap-3'>
-              <Button variant='ghost' size='sm' render={<Link href='/login' />}>
-                Iniciar Sesión
-              </Button>
-              <Button size='sm' render={<Link href='/register' />}>
-                Registrarse
-              </Button>
-            </div>
+            <Button size='sm' render={<Link href='/login' />}>
+              Iniciar Sesión
+            </Button>
           )}
         </nav>
 
@@ -173,6 +171,13 @@ export default function Header() {
               className='rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
             >
               Proyectos
+            </Link>
+            <Link
+              href='/profiles'
+              onClick={() => setMobileOpen(false)}
+              className='rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
+            >
+              Estudiantes
             </Link>
             {user ? (
               <>
@@ -201,21 +206,14 @@ export default function Header() {
                 </button>
               </>
             ) : (
-              <div className='flex flex-col gap-2 px-3 pt-2'>
+              <div className='px-3 pt-2'>
                 <Button
-                  variant='outline'
                   size='sm'
                   render={<Link href='/login' />}
                   onClick={() => setMobileOpen(false)}
+                  className='w-full'
                 >
                   Iniciar Sesión
-                </Button>
-                <Button
-                  size='sm'
-                  render={<Link href='/register' />}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Registrarse
                 </Button>
               </div>
             )}

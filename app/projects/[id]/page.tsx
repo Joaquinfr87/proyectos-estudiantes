@@ -1,11 +1,13 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getProjectById } from '@/lib/actions/projects'
+import { incrementViewCount } from '@/lib/actions/interactions'
 import { createClient } from '@/lib/supabase/server'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import ImageCarousel from '@/components/image-carousel'
+import VoteButton from '@/components/vote-button'
 import {
   GitFork,
   Globe,
@@ -15,6 +17,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import DeleteProjectButton from './delete-button'
+import RealtimeProjectStats from '@/components/realtime-project-stats'
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -35,6 +38,9 @@ export default async function ProjectDetailPage({
   if (!project) {
     notFound()
   }
+
+  // Incrementar vista (fire and forget)
+  incrementViewCount(id).catch(() => {})
 
   const supabase = await createClient()
   const {
@@ -88,6 +94,11 @@ export default async function ProjectDetailPage({
               <Calendar className='h-4 w-4' />
               {date}
             </span>
+            <RealtimeProjectStats
+              projectId={project.id}
+              initialViews={project.views || 0}
+              initialVoteCount={project.vote_count || 0}
+            />
           </div>
         </div>
 
@@ -103,6 +114,14 @@ export default async function ProjectDetailPage({
             <DeleteProjectButton projectId={project.id} />
           </div>
         )}
+      </div>
+
+      {/* Vote Button */}
+      <div className='mb-8'>
+        <VoteButton
+          projectId={project.id}
+          initialVoteCount={project.vote_count || 0}
+        />
       </div>
 
       {/* BIG Link Buttons - GitHub + Demo */}

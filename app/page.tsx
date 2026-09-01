@@ -14,40 +14,105 @@ import {
   Calendar,
   Sparkles,
   Search,
+  Eye,
+  Heart,
+  TrendingUp,
+  Award,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useRealtimeProjects } from '@/lib/hooks/use-realtime-projects'
 import ProjectCard from '@/components/project-card'
 import ImageCarousel from '@/components/image-carousel'
 import type { Project } from '@/lib/types'
+import type { User } from '@supabase/supabase-js'
 
 function HomeContent() {
   const [projects, setProjects] = useState<Project[]>([])
+  const [topVisited, setTopVisited] = useState<Project[]>([])
+  const [topLiked, setTopLiked] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
+
+  useRealtimeProjects(
+    [...projects, ...topVisited, ...topLiked],
+    (updated) => {
+      // Update all lists with new data
+      const updatedMap = new Map(updated.map((p) => [p.id, p]))
+      setProjects((prev) =>
+        prev.map((p) => updatedMap.get(p.id) || p)
+      )
+      setTopVisited((prev) =>
+        prev.map((p) => updatedMap.get(p.id) || p)
+      )
+      setTopLiked((prev) =>
+        prev.map((p) => updatedMap.get(p.id) || p)
+      )
+    }
+  )
 
   useEffect(() => {
     const supabase = createClient()
 
     async function fetchData() {
       try {
-        const { data, error } = await supabase
-          .from('projects')
-          .select(
-            `
-            *,
-            profiles:user_id (
-              full_name,
-              avatar_url,
-              github_username
-            )
-          `
-          )
-          .order('created_at', { ascending: false })
-          .limit(50)
+        // Check if user is logged in
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        setUser(authUser)
 
-        if (!error && data) {
-          // Shuffle for random order
-          const shuffled = [...data].sort(() => Math.random() - 0.5)
+        const [projectsResult, visitedResult, likedResult] = await Promise.all([
+          supabase
+            .from('projects')
+            .select(
+              `
+              *,
+              profiles:user_id (
+                full_name,
+                avatar_url,
+                github_username
+              )
+            `
+            )
+            .order('created_at', { ascending: false })
+            .limit(50),
+          supabase
+            .from('projects')
+            .select(
+              `
+              *,
+              profiles:user_id (
+                full_name,
+                avatar_url,
+                github_username
+              )
+            `
+            )
+            .order('views', { ascending: false })
+            .limit(6),
+          supabase
+            .from('projects')
+            .select(
+              `
+              *,
+              profiles:user_id (
+                full_name,
+                avatar_url,
+                github_username
+              )
+            `
+            )
+            .order('vote_count', { ascending: false })
+            .limit(6),
+        ])
+
+        if (projectsResult.data) {
+          const shuffled = [...projectsResult.data].sort(() => Math.random() - 0.5)
           setProjects(shuffled as Project[])
+        }
+        if (visitedResult.data) {
+          setTopVisited(visitedResult.data as Project[])
+        }
+        if (likedResult.data) {
+          setTopLiked(likedResult.data as Project[])
         }
       } catch (err) {
         console.error('Error fetching home data:', err)
@@ -74,7 +139,55 @@ function HomeContent() {
         <EmptyHero />
       )}
 
-      {/* ===== PROJECTS GRID ===== */}
+      {/* ===== TOP VISITED ===== */}
+      {topVisited.length > 0 && (
+        <section className='mx-auto w-full max-w-6xl px-4 py-12 sm:px-6'>
+          <div className='mb-8 flex items-center gap-3'>
+            <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30'>
+              <Eye className='h-5 w-5 text-blue-600 dark:text-blue-400' />
+            </div>
+            <div>
+              <h2 className='text-2xl font-bold tracking-tight'>
+                Más visitados
+              </h2>
+              <p className='text-sm text-zinc-500 dark:text-zinc-400'>
+                Los proyectos que la comunidad más ha visto
+              </p>
+            </div>
+          </div>
+          <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+            {topVisited.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ===== TOP LIKED ===== */}
+      {topLiked.length > 0 && (
+        <section className='mx-auto w-full max-w-6xl px-4 py-12 sm:px-6'>
+          <div className='mb-8 flex items-center gap-3'>
+            <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30'>
+              <Heart className='h-5 w-5 text-red-600 dark:text-red-400' />
+            </div>
+            <div>
+              <h2 className='text-2xl font-bold tracking-tight'>
+                Más gustados
+              </h2>
+              <p className='text-sm text-zinc-500 dark:text-zinc-400'>
+                Los proyectos con más votos de la comunidad
+              </p>
+            </div>
+          </div>
+          <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+            {topLiked.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ===== ALL PROJECTS GRID ===== */}
       {projects.length > 0 && (
         <section className='mx-auto w-full max-w-6xl px-4 py-12 sm:px-6'>
           <div className='mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
@@ -114,38 +227,40 @@ function HomeContent() {
         </section>
       )}
 
-      {/* ===== MARKETING SECTION ===== */}
-      <section className='border-t border-zinc-200 dark:border-zinc-800'>
-        <div className='mx-auto max-w-6xl px-4 py-16 sm:px-6'>
-          <div className='mx-auto max-w-2xl text-center'>
-            <h2 className='text-2xl font-bold tracking-tight'>
-              ¿Eres estudiante de UPDS?
-            </h2>
-            <p className='mt-3 text-zinc-500 dark:text-zinc-400'>
-              Comparte tus proyectos web con la comunidad, conecta con otros
-              desarrolladores y muestra tu trabajo.
-            </p>
-            <div className='mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row'>
-              <Button
-                size='lg'
-                className='h-11 px-6 text-sm'
-                render={<Link href='/register' />}
-              >
-                Crear cuenta gratis
-                <ArrowRight className='ml-2 h-4 w-4' />
-              </Button>
-              <Button
-                size='lg'
-                variant='outline'
-                className='h-11 px-6 text-sm'
-                render={<Link href='/projects' />}
-              >
-                Ver proyectos
-              </Button>
+      {/* ===== MARKETING SECTION (solo para usuarios no autenticados) ===== */}
+      {!user && (
+        <section className='border-t border-zinc-200 dark:border-zinc-800'>
+          <div className='mx-auto max-w-6xl px-4 py-16 sm:px-6'>
+            <div className='mx-auto max-w-2xl text-center'>
+              <h2 className='text-2xl font-bold tracking-tight'>
+                ¿Eres estudiante de UPDS?
+              </h2>
+              <p className='mt-3 text-zinc-500 dark:text-zinc-400'>
+                Comparte tus proyectos web con la comunidad, conecta con otros
+                desarrolladores y muestra tu trabajo.
+              </p>
+              <div className='mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row'>
+                <Button
+                  size='lg'
+                  className='h-11 px-6 text-sm'
+                  render={<Link href='/login' />}
+                >
+                  Iniciar sesión con GitHub
+                  <ArrowRight className='ml-2 h-4 w-4' />
+                </Button>
+                <Button
+                  size='lg'
+                  variant='outline'
+                  className='h-11 px-6 text-sm'
+                  render={<Link href='/projects' />}
+                >
+                  Ver proyectos
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   )
 }
@@ -381,9 +496,9 @@ function EmptyHero() {
             <Button
               size='lg'
               className='h-12 px-8 text-base'
-              render={<Link href='/register' />}
+              render={<Link href='/login' />}
             >
-              Comenzar ahora
+              Iniciar sesión con GitHub
               <ArrowRight className='ml-2 h-4 w-4' />
             </Button>
             <Button

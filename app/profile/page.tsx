@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { updateProfile, getCurrentProfile } from '@/lib/actions/profile'
 import { Button } from '@/components/ui/button'
@@ -17,10 +17,20 @@ import {
 } from '@/components/ui/card'
 import AvatarUpload from '@/components/avatar-upload'
 import type { Profile } from '@/lib/types'
-import { Loader2, Save, GitFork, User } from 'lucide-react'
+import {
+  Loader2,
+  Save,
+  GitFork,
+  User,
+  GraduationCap,
+  BookOpen,
+  Wrench,
+} from 'lucide-react'
 
-export default function ProfilePage() {
+function ProfileForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isNewUser = searchParams.get('new') === 'true'
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -65,8 +75,12 @@ export default function ProfilePage() {
     if (result?.error) {
       setError(result.error)
     } else {
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
+      if (isNewUser) {
+        router.push('/dashboard')
+      } else {
+        setSuccess(true)
+        setTimeout(() => setSuccess(false), 3000)
+      }
     }
 
     setSaving(false)
@@ -87,10 +101,26 @@ export default function ProfilePage() {
   return (
     <div className='mx-auto max-w-2xl px-4 py-8 sm:px-6'>
       <div className='mb-8'>
-        <h1 className='text-2xl font-bold tracking-tight'>Mi Perfil</h1>
-        <p className='mt-1 text-zinc-500 dark:text-zinc-400'>
-          Administra tu información personal
-        </p>
+        {isNewUser ? (
+          <>
+            <div className='mb-4 rounded-lg border border-violet-200 bg-violet-50 px-4 py-3 dark:border-violet-900 dark:bg-violet-950/30'>
+              <p className='text-sm font-medium text-violet-700 dark:text-violet-300'>
+                👋 ¡Bienvenido! Completa tu perfil para que otros estudiantes puedan conocerte.
+              </p>
+            </div>
+            <h1 className='text-2xl font-bold tracking-tight'>Completa tu perfil</h1>
+            <p className='mt-1 text-zinc-500 dark:text-zinc-400'>
+              Cuéntanos sobre ti para empezar a compartir proyectos
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className='text-2xl font-bold tracking-tight'>Mi Perfil</h1>
+            <p className='mt-1 text-zinc-500 dark:text-zinc-400'>
+              Administra tu información personal
+            </p>
+          </>
+        )}
       </div>
 
       <Card className='border-zinc-200 dark:border-zinc-800'>
@@ -148,6 +178,53 @@ export default function ProfilePage() {
               </div>
             </div>
 
+            <div className='grid gap-4 sm:grid-cols-2'>
+              <div className='space-y-2'>
+                <Label htmlFor='career'>
+                  <BookOpen className='mr-1.5 inline-block h-3.5 w-3.5' />
+                  Carrera
+                </Label>
+                <Input
+                  id='career'
+                  name='career'
+                  placeholder='ej: Ing. en Sistemas'
+                  defaultValue={profile?.career || ''}
+                  className='h-10'
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='semester'>
+                  <GraduationCap className='mr-1.5 inline-block h-3.5 w-3.5' />
+                  Semestre
+                </Label>
+                <Input
+                  id='semester'
+                  name='semester'
+                  placeholder='ej: 3er semestre'
+                  defaultValue={profile?.semester || ''}
+                  className='h-10'
+                />
+              </div>
+            </div>
+
+            <div className='space-y-2'>
+              <Label htmlFor='skills'>
+                <Wrench className='mr-1.5 inline-block h-3.5 w-3.5' />
+                Habilidades
+              </Label>
+              <Input
+                id='skills'
+                name='skills'
+                placeholder='React, TypeScript, Python, Node.js...'
+                defaultValue={profile?.skills?.join(', ') || ''}
+                className='h-10'
+              />
+              <p className='text-xs text-zinc-400'>
+                Separa cada habilidad con una coma
+              </p>
+            </div>
+
             <div className='space-y-2'>
               <Label htmlFor='bio'>Biografía</Label>
               <Textarea
@@ -189,5 +266,19 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className='flex min-h-[calc(100vh-4rem)] items-center justify-center'>
+          <Loader2 className='h-8 w-8 animate-spin text-zinc-400' />
+        </div>
+      }
+    >
+      <ProfileForm />
+    </Suspense>
   )
 }

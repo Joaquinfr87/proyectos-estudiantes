@@ -7,7 +7,7 @@
 
 Plataforma para que estudiantes de la **UPDS** (Universidad Privada Domingo Savio) compartan sus proyectos web con la comunidad.
 
-Creada por [Joaquin Felipez Rojas](https://github.com/Joaquinfr87) para la materia de **Programación IV**.
+Creada por [Joaquin Felipez Rojas](https://github.com/Joaquinfr87).
 
 ---
 
@@ -121,4 +121,4 @@ RLS habilitado: los proyectos y perfiles son visibles para todos, pero solo el d
 
 ## 📄 Licencia
 
-Este proyecto es de uso educativo para la materia de Programación IV — UPDS.
+Este proyecto es de uso educativo para la comunidad de estudiantes UPDS.
