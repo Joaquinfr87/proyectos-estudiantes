@@ -62,12 +62,6 @@ export async function createSubject(formData: FormData) {
       return { error: error.message }
     }
 
-    // Auto-inscribir al creador
-    await supabase.from('student_subjects').insert({
-      student_id: user.id,
-      subject_id: data.id,
-    })
-
     revalidatePath('/subjects')
     return { success: true, subject: data as Subject }
   } catch (e) {
