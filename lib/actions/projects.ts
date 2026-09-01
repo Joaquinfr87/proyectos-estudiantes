@@ -112,6 +112,10 @@ export async function createProject(formData: FormData) {
     revalidatePath('/projects')
     redirect('/projects')
   } catch (e) {
+    // Next.js redirect() throws a special error that should propagate
+    if (e && typeof e === 'object' && 'digest' in e) {
+      throw e
+    }
     const message = e instanceof Error ? e.message : 'Error al crear el proyecto'
     return { error: message }
   }
@@ -177,6 +181,10 @@ export async function updateProject(projectId: string, formData: FormData) {
     revalidatePath(`/projects/${projectId}`)
     redirect('/projects')
   } catch (e) {
+    // Next.js redirect() throws a special error that should propagate
+    if (e && typeof e === 'object' && 'digest' in e) {
+      throw e
+    }
     const message = e instanceof Error ? e.message : 'Error al actualizar el proyecto'
     return { error: message }
   }
