@@ -54,6 +54,8 @@ export async function updateSession(request: NextRequest) {
       !pathname.includes('/new') &&
       !pathname.includes('/edit')) ||
     pathname === '/profiles' ||
+    pathname === '/subjects' ||
+    (pathname.startsWith('/subjects/') && pathname !== '/subjects') ||
     (pathname.startsWith('/profile/') && pathname !== '/profile')
 
   if (!user && !isPublicRoute) {

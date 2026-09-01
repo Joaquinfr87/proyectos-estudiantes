@@ -22,9 +22,11 @@ export interface Project {
   views: number
   vote_count: number
   user_id: string
+  subject_id: string | null
   created_at: string
   updated_at: string
   profiles?: Pick<Profile, 'full_name' | 'avatar_url' | 'github_username'>
+  subjects?: { name: string; code: string | null }
 }
 
 export interface ProjectVote {

@@ -61,6 +61,7 @@ export async function createProject(formData: FormData) {
     const liveUrl = (formData.get('live_url') as string) || ''
     const techStack = parseJsonArray(formData.get('tech_stack') as string, 'tech_stack')
     const imageUrls = parseJsonArray(formData.get('image_urls') as string, 'image_urls')
+    const subjectId = (formData.get('subject_id') as string) || null
 
     // Validation
     if (!title || title.length < 3) {
@@ -99,6 +100,7 @@ export async function createProject(formData: FormData) {
       live_url: liveUrl || null,
       tech_stack: techStack,
       image_urls: imageUrls,
+      subject_id: subjectId || null,
       user_id: user.id,
     })
 
@@ -132,6 +134,7 @@ export async function updateProject(projectId: string, formData: FormData) {
     const liveUrl = (formData.get('live_url') as string) || ''
     const techStack = parseJsonArray(formData.get('tech_stack') as string, 'tech_stack')
     const imageUrls = parseJsonArray(formData.get('image_urls') as string, 'image_urls')
+    const subjectId = (formData.get('subject_id') as string) || null
 
     // Validation
     if (!title || title.length < 3) {
@@ -159,6 +162,7 @@ export async function updateProject(projectId: string, formData: FormData) {
         live_url: liveUrl || null,
         tech_stack: techStack,
         image_urls: imageUrls,
+        subject_id: subjectId || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', projectId)

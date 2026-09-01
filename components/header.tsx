@@ -77,6 +77,12 @@ export default function Header() {
         {/* Desktop nav */}
         <nav className='hidden items-center gap-6 md:flex'>
           <Link
+            href='/subjects'
+            className='text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50'
+          >
+            Materias
+          </Link>
+          <Link
             href='/projects'
             className='text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50'
           >
@@ -165,6 +171,13 @@ export default function Header() {
       {mobileOpen && (
         <div className='border-t border-zinc-200 bg-white px-4 pb-4 pt-2 md:hidden dark:border-zinc-800 dark:bg-black'>
           <nav className='flex flex-col gap-1'>
+            <Link
+              href='/subjects'
+              onClick={() => setMobileOpen(false)}
+              className='rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
+            >
+              Materias
+            </Link>
             <Link
               href='/projects'
               onClick={() => setMobileOpen(false)}

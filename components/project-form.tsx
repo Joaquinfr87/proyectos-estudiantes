@@ -1,17 +1,19 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { X, Plus, Loader2, GitFork, Globe, Image, Upload, ChevronsUpDown, Search } from 'lucide-react'
+import { X, Plus, Loader2, GitFork, Globe, Image, Upload, ChevronsUpDown, Search, BookOpen } from 'lucide-react'
 import { createProject, updateProject } from '@/lib/actions/projects'
 import { uploadProjectImage } from '@/lib/supabase/storage'
 import { createClient } from '@/lib/supabase/client'
 import { ALL_TECH_TAGS } from '@/lib/tech-tags'
+import { getSubjectsWithCounts, createSubject } from '@/lib/actions/subjects'
 import type { Project } from '@/lib/types'
+import type { Subject } from '@/lib/actions/subjects'
 
 interface ProjectFormProps {
   project?: Project
@@ -30,7 +32,16 @@ export default function ProjectForm({ project }: ProjectFormProps) {
   const [uploadingImage, setUploadingImage] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [subjects, setSubjects] = useState<Subject[]>([])
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>(project?.subject_id || '')
+  const [newSubjectName, setNewSubjectName] = useState('')
+  const [creatingSubject, setCreatingSubject] = useState(false)
+  const [showNewSubject, setShowNewSubject] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    getSubjectsWithCounts().then(setSubjects)
+  }, [])
 
   const addTech = (tech: string) => {
     if (tech && !techStack.includes(tech)) {
@@ -117,6 +128,7 @@ export default function ProjectForm({ project }: ProjectFormProps) {
     const formData = new FormData(e.currentTarget)
     formData.set('tech_stack', JSON.stringify(techStack))
     formData.set('image_urls', JSON.stringify(imageUrls))
+    formData.set('subject_id', selectedSubjectId)
 
     let result
     if (project) {
@@ -151,6 +163,87 @@ export default function ProjectForm({ project }: ProjectFormProps) {
           required
           className='h-10'
         />
+      </div>
+
+      {/* Materia */}
+      <div className='space-y-2'>
+        <Label className='text-sm font-medium'>
+          <BookOpen className='mr-1.5 inline-block h-3.5 w-3.5' />
+          Materia (opcional)
+        </Label>
+        {!showNewSubject ? (
+          <div className='flex gap-2'>
+            <select
+              value={selectedSubjectId}
+              onChange={(e) => setSelectedSubjectId(e.target.value)}
+              className='h-10 flex-1 rounded-lg border border-zinc-200 bg-white px-3 text-sm dark:border-zinc-800 dark:bg-zinc-950'
+            >
+              <option value=''>Sin materia</option>
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.code ? `${s.code} - ` : ''}{s.name}
+                </option>
+              ))}
+            </select>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              onClick={() => setShowNewSubject(true)}
+              className='shrink-0'
+            >
+              <Plus className='mr-1 h-3.5 w-3.5' />
+              Nueva
+            </Button>
+          </div>
+        ) : (
+          <div className='flex gap-2'>
+            <Input
+              value={newSubjectName}
+              onChange={(e) => setNewSubjectName(e.target.value)}
+              placeholder='Nombre de la materia (ej: Programación Web)'
+              className='h-10'
+            />
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              disabled={!newSubjectName || creatingSubject}
+              onClick={async () => {
+                setCreatingSubject(true)
+                const formData = new FormData()
+                formData.set('name', newSubjectName)
+                const result = await createSubject(formData)
+                if (result.error) {
+                  setError(result.error)
+                } else if (result.subject) {
+                  setSubjects([...subjects, result.subject])
+                  setSelectedSubjectId(result.subject.id)
+                  setShowNewSubject(false)
+                  setNewSubjectName('')
+                }
+                setCreatingSubject(false)
+              }}
+            >
+              {creatingSubject ? (
+                <Loader2 className='h-3.5 w-3.5 animate-spin' />
+              ) : (
+                'Crear'
+              )}
+            </Button>
+            <Button
+              type='button'
+              variant='ghost'
+              size='sm'
+              onClick={() => {
+                setShowNewSubject(false)
+                setNewSubjectName('')
+              }}
+            >
+              Cancelar
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className='space-y-2'>

@@ -7,6 +7,10 @@ import { LinkButton } from '@/components/link-button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
+  Card,
+  CardContent,
+} from '@/components/ui/card'
+import {
   ArrowRight,
   Code2,
   GitFork,
@@ -18,18 +22,23 @@ import {
   Heart,
   TrendingUp,
   Award,
+  BookOpen,
+  Users,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRealtimeProjects } from '@/lib/hooks/use-realtime-projects'
+import { getSubjectsWithCounts } from '@/lib/actions/subjects'
 import ProjectCard from '@/components/project-card'
 import ImageCarousel from '@/components/image-carousel'
 import type { Project } from '@/lib/types'
+import type { Subject } from '@/lib/actions/subjects'
 import type { User } from '@supabase/supabase-js'
 
 function HomeContent() {
   const [projects, setProjects] = useState<Project[]>([])
   const [topVisited, setTopVisited] = useState<Project[]>([])
   const [topLiked, setTopLiked] = useState<Project[]>([])
+  const [subjects, setSubjects] = useState<Subject[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
 
@@ -59,7 +68,7 @@ function HomeContent() {
         const { data: { user: authUser } } = await supabase.auth.getUser()
         setUser(authUser)
 
-        const [projectsResult, visitedResult, likedResult] = await Promise.all([
+        const [projectsResult, visitedResult, likedResult, subjectsData] = await Promise.all([
           supabase
             .from('projects')
             .select(
@@ -102,6 +111,7 @@ function HomeContent() {
             )
             .order('vote_count', { ascending: false })
             .limit(6),
+          getSubjectsWithCounts(),
         ])
 
         if (projectsResult.data) {
@@ -114,6 +124,7 @@ function HomeContent() {
         if (likedResult.data) {
           setTopLiked(likedResult.data as Project[])
         }
+        setSubjects(subjectsData)
       } catch (err) {
         console.error('Error fetching home data:', err)
       } finally {
@@ -137,6 +148,68 @@ function HomeContent() {
         <FeaturedHero project={featuredProject} />
       ) : (
         <EmptyHero />
+      )}
+
+      {/* ===== SUBJECTS ===== */}
+      {subjects.length > 0 && (
+        <section className='mx-auto w-full max-w-6xl px-4 py-12 sm:px-6'>
+          <div className='mb-8 flex items-center gap-3'>
+            <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30'>
+              <BookOpen className='h-5 w-5 text-violet-600 dark:text-violet-400' />
+            </div>
+            <div>
+              <h2 className='text-2xl font-bold tracking-tight'>
+                Materias
+              </h2>
+              <p className='text-sm text-zinc-500 dark:text-zinc-400'>
+                Explora proyectos por materia
+              </p>
+            </div>
+          </div>
+          <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+            {subjects.slice(0, 6).map((subject) => (
+              <Link key={subject.id} href={`/subjects/${subject.id}`}>
+                <Card className='group transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md dark:hover:border-violet-800'>
+                  <CardContent className='p-4'>
+                    <div className='flex items-center gap-3'>
+                      <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30'>
+                        <BookOpen className='h-5 w-5 text-violet-600 dark:text-violet-400' />
+                      </div>
+                      <div className='min-w-0 flex-1'>
+                        <h3 className='font-semibold text-zinc-900 transition-colors group-hover:text-violet-600 dark:text-zinc-50 dark:group-hover:text-violet-400'>
+                          {subject.name}
+                        </h3>
+                        {subject.code && (
+                          <span className='text-xs font-medium text-violet-500'>
+                            {subject.code}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className='mt-3 flex items-center gap-3 text-xs text-zinc-400'>
+                      <span className='flex items-center gap-1'>
+                        <Users className='h-3.5 w-3.5' />
+                        {subject.student_count || 0}
+                      </span>
+                      <span className='flex items-center gap-1'>
+                        <Code2 className='h-3.5 w-3.5' />
+                        {subject.project_count || 0} proyectos
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+          {subjects.length > 6 && (
+            <div className='mt-6 text-center'>
+              <Button size='sm' variant='outline' render={<Link href='/subjects' />}>
+                Ver todas las materias
+                <ArrowRight className='ml-1.5 h-3.5 w-3.5' />
+              </Button>
+            </div>
+          )}
+        </section>
       )}
 
       {/* ===== TOP VISITED ===== */}
