@@ -29,12 +29,12 @@ export async function uploadAvatar(
 
 export async function uploadProjectImage(
   userId: string,
-  projectId: string,
+  _projectId: string,
   file: File
 ): Promise<string | null> {
   const supabase = createClient()
   const fileExt = file.name.split('.').pop()
-  const filePath = `${userId}/${projectId}/${crypto.randomUUID()}.${fileExt}`
+  const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`
 
   const { error } = await supabase.storage
     .from(PROJECT_IMAGES_BUCKET)
