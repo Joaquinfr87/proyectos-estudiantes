@@ -32,9 +32,11 @@ function parseJsonArray(input: string | null, fieldName: string): string[] {
       throw new Error(`${fieldName} debe ser un array`)
     }
     // Validate each item is a string and sanitize
+    // URLs need more space, tech tags are shorter
+    const isUrlField = fieldName === 'image_urls'
     return parsed
       .filter((item): item is string => typeof item === 'string')
-      .map((item) => sanitizeString(item, 100))
+      .map((item) => sanitizeString(item, isUrlField ? 2000 : 100))
       .slice(0, 20) // Max 20 items
   } catch (e) {
     if (e instanceof SyntaxError) {
