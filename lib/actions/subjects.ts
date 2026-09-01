@@ -16,7 +16,8 @@ export interface Subject {
 }
 
 // Input validation
-function sanitizeString(input: string, maxLength: number = 200): string {
+function sanitizeString(input: string | null, maxLength: number = 200): string {
+  if (!input) return ''
   return input.trim().slice(0, maxLength)
 }
 
@@ -35,9 +36,9 @@ export async function createSubject(formData: FormData) {
   }
 
   try {
-    const name = sanitizeString(formData.get('name') as string, 200)
-    const description = sanitizeString(formData.get('description') as string, 500)
-    const code = sanitizeString(formData.get('code') as string, 20)
+    const name = sanitizeString((formData.get('name') as string) || '', 200)
+    const description = sanitizeString((formData.get('description') as string) || '', 500)
+    const code = sanitizeString((formData.get('code') as string) || '', 20)
 
     if (!name || name.length < 3) {
       return { error: 'El nombre debe tener al menos 3 caracteres' }

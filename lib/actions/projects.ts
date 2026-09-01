@@ -9,7 +9,8 @@ import type { Project } from '@/lib/types'
 const ITEMS_PER_PAGE = 12
 
 // Input validation helpers
-function sanitizeString(input: string, maxLength: number = 1000): string {
+function sanitizeString(input: string | null, maxLength: number = 1000): string {
+  if (!input) return ''
   return input.trim().slice(0, maxLength)
 }
 

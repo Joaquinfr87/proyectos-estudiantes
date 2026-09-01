@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 // Input validation helper
-function sanitizeString(input: string, maxLength: number = 500): string {
+function sanitizeString(input: string | null, maxLength: number = 500): string {
+  if (!input) return ''
   return input.trim().slice(0, maxLength)
 }
 
