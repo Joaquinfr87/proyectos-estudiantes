@@ -22,12 +22,15 @@ import {
   Users,
   Code2,
   ArrowLeft,
-  Loader2,
   GitFork,
   Search,
   Eye,
   Heart,
+  Clock,
+  CalendarDays,
   ArrowUpDown,
+  X,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { getSubjectById } from '@/lib/actions/subjects'
 import type { Subject } from '@/lib/actions/subjects'
@@ -51,6 +54,15 @@ export default function SubjectDetailPage({ params }: { params: Promise<{ id: st
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('newest')
+
+  const sortOptions = [
+    { value: 'newest', label: 'Recientes', icon: CalendarDays },
+    { value: 'oldest', label: 'Antiguos', icon: Clock },
+    { value: 'most_visited', label: 'Más visitados', icon: Eye },
+    { value: 'most_liked', label: 'Más gustados', icon: Heart },
+    { value: 'az', label: 'A → Z', icon: ArrowUpDown },
+    { value: 'za', label: 'Z → A', icon: ArrowUpDown },
+  ]
 
   useEffect(() => {
     async function load() {
@@ -219,9 +231,15 @@ export default function SubjectDetailPage({ params }: { params: Promise<{ id: st
             </h2>
           </div>
 
-          {/* Search and Sort */}
-          <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center'>
-            <div className='relative flex-1'>
+          {/* Filters */}
+          <div className='mb-6 rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50'>
+            <div className='flex items-center gap-2 mb-3 text-sm font-medium text-zinc-600 dark:text-zinc-400'>
+              <SlidersHorizontal className='h-4 w-4' />
+              Filtros
+            </div>
+
+            {/* Search bar */}
+            <div className='relative mb-3'>
               <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400' />
               <Input
                 value={searchInput}
@@ -237,32 +255,58 @@ export default function SubjectDetailPage({ params }: { params: Promise<{ id: st
                   }
                 }}
                 placeholder='Buscar por nombre, descripción o tecnología...'
-                className='h-10 pl-9'
+                className='h-10 pl-9 pr-20 bg-white dark:bg-zinc-950'
               />
+              <div className='absolute right-1.5 top-1/2 -translate-y-1/2 flex gap-1'>
+                {search && (
+                  <button
+                    type='button'
+                    onClick={() => { setSearchInput(''); setSearch('') }}
+                    className='flex h-8 items-center justify-center rounded-md px-2 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'
+                  >
+                    <X className='h-3.5 w-3.5' />
+                  </button>
+                )}
+                <Button size='sm' className='h-8 px-3 text-xs' onClick={() => setSearch(searchInput)}>
+                  Buscar
+                </Button>
+              </div>
             </div>
-            <Select value={sort} onValueChange={(v) => { if (v) setSort(v) }}>
-              <SelectTrigger className='w-full sm:w-48'>
-                <ArrowUpDown className='mr-1.5 h-3.5 w-3.5' />
-                <SelectValue placeholder='Ordenar' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='newest'>Más recientes</SelectItem>
-                <SelectItem value='oldest'>Más antiguos</SelectItem>
-                <SelectItem value='most_visited'>Más visitados</SelectItem>
-                <SelectItem value='most_liked'>Más gustados</SelectItem>
-                <SelectItem value='az'>A → Z</SelectItem>
-                <SelectItem value='za'>Z → A</SelectItem>
-              </SelectContent>
-            </Select>
+
+            {/* Sort chips */}
+            <div className='flex flex-wrap gap-2'>
+              {sortOptions.map((opt) => {
+                const Icon = opt.icon
+                const isActive = sort === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSort(opt.value)}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                      isActive
+                        ? 'bg-violet-100 text-violet-700 ring-1 ring-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:ring-violet-800'
+                        : 'bg-white text-zinc-600 hover:bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
+                    }`}
+                  >
+                    <Icon className='h-3 w-3' />
+                    {opt.label}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
+          {/* Active search indicator */}
           {search && (
-            <div className='mb-4 flex items-center gap-2 text-sm text-zinc-500'>
-              Resultados para &quot;{search}&quot;
+            <div className='mb-4 flex items-center gap-2'>
+              <span className='text-sm text-zinc-500'>
+                Resultados para &quot;{search}&quot; ({projects.length})
+              </span>
               <button
                 onClick={() => { setSearchInput(''); setSearch('') }}
-                className='text-violet-600 hover:text-violet-700 dark:text-violet-400'
+                className='inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700 hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:hover:bg-violet-900/50'
               >
+                <X className='h-3 w-3' />
                 Limpiar
               </button>
             </div>
